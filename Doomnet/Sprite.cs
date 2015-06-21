@@ -4,8 +4,10 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using SDL2;
 
 namespace Doomnet
 {
@@ -16,12 +18,25 @@ namespace Doomnet
         private Int16 lOffset;
         private Int16 tOffset;
 
-        private Byte[,] data;
+        private SDL.SDL_Color[,] data;
+        private readonly Palette palette;
+
+        private IntPtr surface;
+
+        public Sprite(Palette palette)
+        {
+            this.palette = palette;
+        }
+
+        public IntPtr Surface
+        {
+            get { return surface; }
+        }
 
         public void Read(Stream stream)
         {
             long start = stream.Position;
-            Byte[] header = new byte[8];
+            var header = new byte[8];
 
             stream.Read(header, 0, 8);
 
@@ -30,7 +45,7 @@ namespace Doomnet
             lOffset = BitConverter.ToInt16(header, 4);
             tOffset = BitConverter.ToInt16(header, 6);
 
-            data = new byte[width, height];
+            data = new SDL.SDL_Color[width, height];
 
             var columns = new Int32[width];
             var buffer = new Byte[width * 4];
@@ -57,23 +72,31 @@ namespace Doomnet
                     stream.ReadByte();
                     for (int j = 0; j < number; j++)
                     {
-                        data[i, row + j] = (byte)stream.ReadByte();
+                        int color = stream.ReadByte();
+                        data[i, row + j] = palette.BaseColors[color];
                     }
                     stream.ReadByte();
                 }
             }
 
-            Bitmap bitmap = new Bitmap(width, height);
+            surface = SDL.SDL_CreateRGBSurface(0,
+                width, height,
+                32,0,0,0,0);
 
-            for (int i = 0; i < width; i++)
+            var structure = (SDL.SDL_Surface) Marshal.PtrToStructure(surface, typeof (SDL.SDL_Surface));
+
+            var pixels = new Int32[width*height];
+
+            for (int i = 0; i < height; i++)
             {
-                for (int j = 0; j < height; j++)
+                for (int j = 0; j < width; j++)
                 {
-                    bitmap.SetPixel(i, j, Color.FromArgb(data[i, j]));
+                    var color = data[j, i];
+                    pixels[i*width + j] = (int)SDL.SDL_MapRGBA(structure.format, color.r, color.g, color.b, color.a);
                 }
             }
 
-            bitmap.Save("TestSprite.png");
+            Marshal.Copy(pixels, 0, structure.pixels, width*height);
         }
     }
 }

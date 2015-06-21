@@ -9,10 +9,18 @@ namespace Doomnet.TestFiles
 {
     class Wad
     {
+        private Stream stream;
+
         public Header Header;
         public Directory Directory;
+        public Palette Palette;
 
-        public void Read(Stream stream)
+        public Wad(Stream file)
+        {
+            stream = file;
+        }
+
+        public void Read()
         {
             Header = new Header();
             Header.Read(stream);
@@ -22,12 +30,22 @@ namespace Doomnet.TestFiles
             Directory = new Directory();
             Directory.Read(stream, Header.Lumps);
 
-            Directory.Entry imp = Directory.Entries.First(e => e.Name.Contains("TROOA1"));
+            Directory.Entry entry = Directory.Entries.First(e => e.Name.Contains("PLAYPAL"));
 
-            stream.Position = imp.Offset;
+            stream.Position = entry.Offset;
+            Palette = new Palette();
+            Palette.Read(stream);
+        }
 
-            Sprite sprite = new Sprite();
+        public Sprite ReadSprite(string name)
+        {
+            Directory.Entry spriteEntry = Directory.Entries.First(e => e.Name.Contains(name));
+
+            stream.Position = spriteEntry.Offset;
+            Sprite sprite = new Sprite(Palette);
             sprite.Read(stream);
+
+            return sprite;
         }
     }
 }
