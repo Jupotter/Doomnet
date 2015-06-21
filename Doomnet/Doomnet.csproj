@@ -51,9 +51,102 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="SDL\lib\win32\SDL2.lib" />
+    <None Include="SDL\lib\win32\SDL2main.lib" />
     <None Include="TestFiles\DOOM1.WAD">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SDL2-CS\SDL2-CS.csproj">
+      <Project>{85480198-8711-4355-830e-72fd794ad3f6}</Project>
+      <Name>SDL2-CS</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SDL\include\begin_code.h" />
+    <Content Include="SDL\include\close_code.h" />
+    <Content Include="SDL\include\SDL.h" />
+    <Content Include="SDL\include\SDL_assert.h" />
+    <Content Include="SDL\include\SDL_atomic.h" />
+    <Content Include="SDL\include\SDL_audio.h" />
+    <Content Include="SDL\include\SDL_bits.h" />
+    <Content Include="SDL\include\SDL_blendmode.h" />
+    <Content Include="SDL\include\SDL_clipboard.h" />
+    <Content Include="SDL\include\SDL_config.h" />
+    <Content Include="SDL\include\SDL_config_android.h" />
+    <Content Include="SDL\include\SDL_config_iphoneos.h" />
+    <Content Include="SDL\include\SDL_config_macosx.h" />
+    <Content Include="SDL\include\SDL_config_minimal.h" />
+    <Content Include="SDL\include\SDL_config_pandora.h" />
+    <Content Include="SDL\include\SDL_config_psp.h" />
+    <Content Include="SDL\include\SDL_config_windows.h" />
+    <Content Include="SDL\include\SDL_config_winrt.h" />
+    <Content Include="SDL\include\SDL_config_wiz.h" />
+    <Content Include="SDL\include\SDL_copying.h" />
+    <Content Include="SDL\include\SDL_cpuinfo.h" />
+    <Content Include="SDL\include\SDL_egl.h" />
+    <Content Include="SDL\include\SDL_endian.h" />
+    <Content Include="SDL\include\SDL_error.h" />
+    <Content Include="SDL\include\SDL_events.h" />
+    <Content Include="SDL\include\SDL_filesystem.h" />
+    <Content Include="SDL\include\SDL_gamecontroller.h" />
+    <Content Include="SDL\include\SDL_gesture.h" />
+    <Content Include="SDL\include\SDL_haptic.h" />
+    <Content Include="SDL\include\SDL_hints.h" />
+    <Content Include="SDL\include\SDL_joystick.h" />
+    <Content Include="SDL\include\SDL_keyboard.h" />
+    <Content Include="SDL\include\SDL_keycode.h" />
+    <Content Include="SDL\include\SDL_loadso.h" />
+    <Content Include="SDL\include\SDL_log.h" />
+    <Content Include="SDL\include\SDL_main.h" />
+    <Content Include="SDL\include\SDL_messagebox.h" />
+    <Content Include="SDL\include\SDL_mouse.h" />
+    <Content Include="SDL\include\SDL_mutex.h" />
+    <Content Include="SDL\include\SDL_name.h" />
+    <Content Include="SDL\include\SDL_opengl.h" />
+    <Content Include="SDL\include\SDL_opengles.h" />
+    <Content Include="SDL\include\SDL_opengles2.h" />
+    <Content Include="SDL\include\SDL_opengles2_gl2.h" />
+    <Content Include="SDL\include\SDL_opengles2_gl2ext.h" />
+    <Content Include="SDL\include\SDL_opengles2_gl2platform.h" />
+    <Content Include="SDL\include\SDL_opengles2_khrplatform.h" />
+    <Content Include="SDL\include\SDL_opengl_glext.h" />
+    <Content Include="SDL\include\SDL_pixels.h" />
+    <Content Include="SDL\include\SDL_platform.h" />
+    <Content Include="SDL\include\SDL_power.h" />
+    <Content Include="SDL\include\SDL_quit.h" />
+    <Content Include="SDL\include\SDL_rect.h" />
+    <Content Include="SDL\include\SDL_render.h" />
+    <Content Include="SDL\include\SDL_revision.h" />
+    <Content Include="SDL\include\SDL_rwops.h" />
+    <Content Include="SDL\include\SDL_scancode.h" />
+    <Content Include="SDL\include\SDL_shape.h" />
+    <Content Include="SDL\include\SDL_stdinc.h" />
+    <Content Include="SDL\include\SDL_surface.h" />
+    <Content Include="SDL\include\SDL_system.h" />
+    <Content Include="SDL\include\SDL_syswm.h" />
+    <Content Include="SDL\include\SDL_test.h" />
+    <Content Include="SDL\include\SDL_test_assert.h" />
+    <Content Include="SDL\include\SDL_test_common.h" />
+    <Content Include="SDL\include\SDL_test_compare.h" />
+    <Content Include="SDL\include\SDL_test_crc32.h" />
+    <Content Include="SDL\include\SDL_test_font.h" />
+    <Content Include="SDL\include\SDL_test_fuzzer.h" />
+    <Content Include="SDL\include\SDL_test_harness.h" />
+    <Content Include="SDL\include\SDL_test_images.h" />
+    <Content Include="SDL\include\SDL_test_log.h" />
+    <Content Include="SDL\include\SDL_test_md5.h" />
+    <Content Include="SDL\include\SDL_test_random.h" />
+    <Content Include="SDL\include\SDL_thread.h" />
+    <Content Include="SDL\include\SDL_timer.h" />
+    <Content Include="SDL\include\SDL_touch.h" />
+    <Content Include="SDL\include\SDL_types.h" />
+    <Content Include="SDL\include\SDL_version.h" />
+    <Content Include="SDL\include\SDL_video.h" />
+    <Content Include="SDL2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
