@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
+﻿using SDL2;
+using System;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using SDL2;
 
 namespace Doomnet
 {
-    class Sprite
+    internal class Sprite
     {
         private Int16 width;
         private Int16 height;
@@ -64,7 +58,6 @@ namespace Doomnet
 
                 while (true)
                 {
-
                     int row = stream.ReadByte();
                     if (row == 255)
                         break;
@@ -81,22 +74,22 @@ namespace Doomnet
 
             surface = SDL.SDL_CreateRGBSurface(0,
                 width, height,
-                32,0,0,0,0);
+                32, 0, 0, 0, 0);
 
-            var structure = (SDL.SDL_Surface) Marshal.PtrToStructure(surface, typeof (SDL.SDL_Surface));
+            var structure = (SDL.SDL_Surface)Marshal.PtrToStructure(surface, typeof(SDL.SDL_Surface));
 
-            var pixels = new Int32[width*height];
+            var pixels = new Int32[width * height];
 
             for (int i = 0; i < height; i++)
             {
                 for (int j = 0; j < width; j++)
                 {
                     var color = data[j, i];
-                    pixels[i*width + j] = (int)SDL.SDL_MapRGBA(structure.format, color.r, color.g, color.b, color.a);
+                    pixels[i * width + j] = (int)SDL.SDL_MapRGBA(structure.format, color.r, color.g, color.b, color.a);
                 }
             }
 
-            Marshal.Copy(pixels, 0, structure.pixels, width*height);
+            Marshal.Copy(pixels, 0, structure.pixels, width * height);
         }
     }
 }

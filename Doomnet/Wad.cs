@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace Doomnet.TestFiles
+namespace Doomnet
 {
-    class Wad
+    internal class Wad
     {
         private readonly Stream stream;
 
-        public Header Header;
-        public Directory Directory;
-        public Palette Palette;
-        public List<Directory.Entry> Levels; 
+        private Header header;
+        private Directory directory;
+        private Palette palette;
 
         public Wad(Stream file)
         {
@@ -24,27 +18,27 @@ namespace Doomnet.TestFiles
 
         public void Read()
         {
-            Header = new Header();
-            Header.Read(stream);
+            header = new Header();
+            header.Read(stream);
 
-            stream.Position = Header.Offset;
+            stream.Position = header.Offset;
 
-            Directory = new Directory();
-            Directory.Read(stream, Header.Lumps);
+            directory = new Directory();
+            directory.Read(stream, header.Lumps);
 
-            Directory.Entry entry = Directory.Entries.First(e => e.Name.Contains("PLAYPAL"));
+            Directory.Entry entry = directory.Entries.First(e => e.Name.Contains("PLAYPAL"));
 
             stream.Position = entry.Offset;
-            Palette = new Palette();
-            Palette.Read(stream);
+            palette = new Palette();
+            palette.Read(stream);
         }
 
         public Sprite ReadSprite(string name)
         {
-            Directory.Entry spriteEntry = Directory.Entries.First(e => e.Name.Contains(name));
+            Directory.Entry spriteEntry = directory.Entries.First(e => e.Name.Contains(name));
 
             stream.Position = spriteEntry.Offset;
-            var sprite = new Sprite(Palette);
+            var sprite = new Sprite(palette);
             sprite.Read(stream);
 
             return sprite;

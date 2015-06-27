@@ -4,11 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Doomnet
 {
-    class Directory
+    internal class Directory
     {
         private static readonly Regex LevelName = new Regex(@"E\dM\d");
 
