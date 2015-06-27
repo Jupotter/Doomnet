@@ -48,7 +48,7 @@ namespace Doomnet
                 {
                     Offset = BitConverter.ToInt32(buffer, 0),
                     Size = BitConverter.ToInt32(buffer, 4),
-                    Name = Encoding.ASCII.GetString(buffer, 8, 8)
+                    Name = Encoding.ASCII.GetString(buffer, 8, 8).Replace("\0", String.Empty)
                 };
 
                 entries.Add(entry);

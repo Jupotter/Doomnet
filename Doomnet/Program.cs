@@ -22,9 +22,15 @@ namespace Doomnet
 
             wad.Read();
 
-            var troo = wad.ReadSprite("TROOA1");
+            var E1M1 = wad.LoadLevel("E1M1");
 
-            SDL.SDL_BlitSurface(troo.Surface, IntPtr.Zero, screenSurface, IntPtr.Zero);
+            var level = E1M1.Display();
+
+            E1M1.SaveImage();
+
+            //var troo = wad.ReadSprite("TROOA1");
+
+            SDL.SDL_BlitSurface(level, IntPtr.Zero, screenSurface, IntPtr.Zero);
 
             SDL.SDL_UpdateWindowSurface(window);
 

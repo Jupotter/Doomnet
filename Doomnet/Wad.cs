@@ -43,5 +43,15 @@ namespace Doomnet
 
             return sprite;
         }
+
+        public Level LoadLevel(string name)
+        {
+            var levelDef = directory.Levels.First(e => e.Name.Contains(name));
+
+            var level = new Level(levelDef);
+            level.Read(stream);
+
+            return level;
+        }
     }
 }

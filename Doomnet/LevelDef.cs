@@ -19,5 +19,15 @@ namespace Doomnet
         public Directory.Entry SECTORS;
         public Directory.Entry REJECT;
         public Directory.Entry BLOCKMAP;
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        public string Name
+        {
+            get { return Level.Name; }
+        }
     }
 }
