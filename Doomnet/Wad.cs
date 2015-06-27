@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Doomnet.TestFiles
 {
     class Wad
     {
-        private Stream stream;
+        private readonly Stream stream;
 
         public Header Header;
         public Directory Directory;
         public Palette Palette;
+        public List<Directory.Entry> Levels; 
 
         public Wad(Stream file)
         {
@@ -42,7 +44,7 @@ namespace Doomnet.TestFiles
             Directory.Entry spriteEntry = Directory.Entries.First(e => e.Name.Contains(name));
 
             stream.Position = spriteEntry.Offset;
-            Sprite sprite = new Sprite(Palette);
+            var sprite = new Sprite(Palette);
             sprite.Read(stream);
 
             return sprite;
