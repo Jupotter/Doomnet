@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="Directory.cs" />
     <Compile Include="Header.cs" />
+    <Compile Include="LevelDef.cs" />
     <Compile Include="Palette.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

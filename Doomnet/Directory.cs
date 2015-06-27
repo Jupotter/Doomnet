@@ -11,7 +11,7 @@ namespace Doomnet
     {
         private static readonly Regex LevelName = new Regex(@"E\dM\d");
 
-        public struct Entry
+        public class Entry
         {
             public Int32 Offset;
             public Int32 Size;
@@ -23,13 +23,18 @@ namespace Doomnet
             }
         }
 
-        public readonly List<Entry> Entries = new List<Entry>();
+        private List<Entry> entries = new List<Entry>();
 
-        private List<Entry> levels;
+        private List<LevelDef> levels = new List<LevelDef>();
 
-        public IEnumerable<Entry> Levels
+        public IEnumerable<LevelDef> Levels
         {
             get { return levels; }
+        }
+
+        public IEnumerable<Entry> Entries
+        {
+            get { return entries; }
         }
 
         public void Read(Stream stream, Int32 size)
@@ -46,11 +51,28 @@ namespace Doomnet
                     Name = Encoding.ASCII.GetString(buffer, 8, 8)
                 };
 
-                Entries.Add(entry);
+                entries.Add(entry);
             }
 
-            levels = Entries.FindAll(e => e.Size == 0 && LevelName.Match(e.Name).Success);
-            levels = Levels.OrderBy(e => e.Name).ToList();
+            entries = entries.OrderBy(e => e.Offset).ToList();
+
+            foreach (var entry in entries.FindAll(e => e.Size == 0 && LevelName.Match(e.Name).Success))
+            {
+                Entry entry1 = entry;
+                var possible = Entries.SkipWhile(e => e.Name != entry1.Name);
+
+                var enumerable = possible as IList<Entry> ?? possible.ToList();
+                var level = new LevelDef
+                {
+                    Level = entry,
+                    BLOCKMAP = enumerable.First(e => e.Name == "BLOCKMAP"),
+                    Linedefs = enumerable.First(e => e.Name == "LINEDEFS"),
+                    Sidedefs = enumerable.First(e => e.Name == "SIDEDEFS"),
+                    VERTEXES = enumerable.First(e => e.Name == "VERTEXES"),
+                };
+                levels.Add(level);
+            }
+            levels = Levels.OrderBy(e => e.Level.Name).ToList();
         }
     }
 }
