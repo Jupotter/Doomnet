@@ -69,6 +69,7 @@ namespace Doomnet
                     Linedefs = enumerable.First(e => e.Name == "LINEDEFS"),
                     Sidedefs = enumerable.First(e => e.Name == "SIDEDEFS"),
                     VERTEXES = enumerable.First(e => e.Name == "VERTEXES"),
+                    SEGS = enumerable.First(e => e.Name == "SEGS"),
                 };
                 levels.Add(level);
             }

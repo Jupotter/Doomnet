@@ -12,6 +12,20 @@ namespace Doomnet
 {
     class Level
     {
+        private class Segment
+        {
+            public Vertex start, end;
+            public short angle;
+            public short line;
+            public bool reverse;
+            public short offset;
+
+            public override string ToString()
+            {
+                return String.Format("{0} --> {1}", start, end);
+            }
+        }
+
         public class Vertex
         {
             public short X;
@@ -24,6 +38,7 @@ namespace Doomnet
         }
 
         private List<Vertex> vertices = new List<Vertex>();
+        private List<Segment> segments = new List<Segment>(); 
         private LevelDef definition;
 
         public Level(LevelDef definition)
@@ -33,9 +48,49 @@ namespace Doomnet
 
         public void Read(Stream stream)
         {
+            ReadVertices(stream);
+
+            stream.Seek(definition.SEGS.Offset, SeekOrigin.Begin);
+
+            for (int i = 0; i < definition.SEGS.Size/12; i++)
+            {
+                var buffer = new byte[12];
+
+                stream.Read(buffer, 0, 12);
+
+                var start = vertices[BitConverter.ToInt16(buffer, 0)];
+                var end = vertices[BitConverter.ToInt16(buffer, 2)];
+
+                var s = new Segment
+                {
+                    start = start,
+                    end = end,
+                    angle = BitConverter.ToInt16(buffer, 4),
+                    line = BitConverter.ToInt16(buffer, 6),
+                    reverse = BitConverter.ToInt16(buffer, 8) != 0,
+                    offset = BitConverter.ToInt16(buffer, 10)
+                };
+
+                segments.Add(s);
+            }
+        }
+
+        private void NormalizeVertices()
+        {
+            var minX = vertices.Min(v => v.X);
+            var minY = vertices.Min(v => v.Y);
+            foreach (var vertex in vertices)
+            {
+                vertex.X -= minX;
+                vertex.Y -= minY;
+            }
+        }
+
+        private void ReadVertices(Stream stream)
+        {
             stream.Seek(definition.VERTEXES.Offset, SeekOrigin.Begin);
 
-            for (int i = 0; i < definition.VERTEXES.Size / 4; i++)
+            for (int i = 0; i < definition.VERTEXES.Size/4; i++)
             {
                 var buffer = new byte[4];
 
@@ -50,13 +105,7 @@ namespace Doomnet
                 vertices.Add(v);
             }
 
-            var minX = vertices.Min(v => v.X);
-            var minY = vertices.Min(v => v.Y);
-            foreach (var vertex in vertices)
-            {
-                vertex.X -= minX;
-                vertex.Y -= minY;
-            }
+            NormalizeVertices();
         }
 
         public void SaveImage()
