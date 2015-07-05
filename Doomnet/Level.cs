@@ -116,8 +116,19 @@ namespace Doomnet
 
             foreach (var vertex in vertices)
             {
-                bitmap.SetPixel(vertex.X, vertex.Y, Color.White);
+                bitmap.SetPixel(vertex.X, vertex.Y, Color.Black);
             }
+
+            var pen = new Pen(Color.Black);
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                foreach (var segment in segments)
+                {
+                    graphics.DrawLine(pen, segment.start.X, segment.start.Y, segment.end.X, segment.end.Y);
+                }
+            }
+
+            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
             bitmap.Save(definition.Name.Trim() + ".png");
         }
