@@ -50,6 +50,11 @@ namespace Doomnet
         {
             ReadVertices(stream);
 
+            ReadSegments(stream);
+        }
+
+        private void ReadSegments(Stream stream)
+        {
             stream.Seek(definition.SEGS.Offset, SeekOrigin.Begin);
 
             for (int i = 0; i < definition.SEGS.Size/12; i++)
