@@ -46,10 +46,15 @@
     <Compile Include="Header.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="LevelDef.cs" />
+    <Compile Include="Linedef.cs" />
     <Compile Include="Palette.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Segment.cs" />
+    <Compile Include="Sidedef.cs" />
     <Compile Include="Sprite.cs" />
+    <Compile Include="Thing.cs" />
+    <Compile Include="Vertex.cs" />
     <Compile Include="Wad.cs" />
   </ItemGroup>
   <ItemGroup>
