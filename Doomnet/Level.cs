@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using SDL2;
 
 namespace Doomnet
@@ -30,7 +31,19 @@ namespace Doomnet
             public Flags flags;
             public short type;
             public short tag;
-            public short right, left;
+            public Sidedef right, left;
+            
+            public override string ToString()
+            {
+                return String.Format("{0} --> {1}", start, end);
+            }
+        }
+
+        internal class Sidedef
+        {
+            public short xOffset, yOffset;
+            public string upper, lower, middle;
+            public short sector;
         }
 
         private class Segment
@@ -41,10 +54,6 @@ namespace Doomnet
             public bool reverse;
             public short offset;
 
-            public override string ToString()
-            {
-                return String.Format("{0} --> {1}", start, end);
-            }
         }
 
         public class Vertex
@@ -60,7 +69,8 @@ namespace Doomnet
 
         private List<Vertex> vertices = new List<Vertex>();
         private List<Segment> segments = new List<Segment>();
-        private List<Linedef> linedefs = new List<Linedef>(); 
+        private List<Linedef> linedefs = new List<Linedef>();
+        private List<Sidedef> sidedefs = new List<Sidedef>(); 
         private LevelDef definition;
 
         public Level(LevelDef definition)
@@ -74,7 +84,34 @@ namespace Doomnet
 
             ReadSegments(stream);
 
+            ReadSidedefs(stream);
+
             ReadLinedefs(stream);
+
+        }
+
+        private void ReadSidedefs(Stream stream)
+        {
+            stream.Seek(definition.Sidedefs.Offset, SeekOrigin.Begin);
+
+            for (int i = 0; i < definition.Sidedefs.Size/30; i++)
+            {
+                var buffer = new byte[30];
+
+                stream.Read(buffer, 0, 30);
+
+                var s = new Sidedef
+                {
+                    xOffset = BitConverter.ToInt16(buffer, 0),
+                    yOffset = BitConverter.ToInt16(buffer, 2),
+                    upper = Encoding.ASCII.GetString(buffer, 4, 8).Replace("\0", String.Empty),
+                    lower = Encoding.ASCII.GetString(buffer, 12, 8).Replace("\0", String.Empty),
+                    middle = Encoding.ASCII.GetString(buffer, 20, 8).Replace("\0", String.Empty),
+                    sector = BitConverter.ToInt16(buffer, 28)
+                };
+
+                sidedefs.Add(s);
+            }
         }
 
         private void ReadLinedefs(Stream stream)
@@ -90,6 +127,10 @@ namespace Doomnet
                 var start = vertices[BitConverter.ToInt16(buffer, 0)];
                 var end = vertices[BitConverter.ToInt16(buffer, 2)];
 
+                var leftnum = BitConverter.ToInt16(buffer, 12);
+                var right = sidedefs[BitConverter.ToInt16(buffer, 10)];
+                var left = leftnum != -1 ? sidedefs[leftnum] : null;
+
                 var l = new Linedef
                 {
                     start = start,
@@ -97,8 +138,8 @@ namespace Doomnet
                     flags = (Linedef.Flags) BitConverter.ToInt16(buffer, 4),
                     type = BitConverter.ToInt16(buffer, 6),
                     tag = BitConverter.ToInt16(buffer, 8),
-                    right = BitConverter.ToInt16(buffer, 10),
-                    left = BitConverter.ToInt16(buffer, 12),
+                    right = right,
+                    left = left
                 };
 
                 linedefs.Add(l);
@@ -190,6 +231,7 @@ namespace Doomnet
                     
                     Pen pen;
                     if (line != null)
+                    {
                         switch (line.flags)
                         {
                             case Linedef.Flags.Secret:
@@ -208,6 +250,9 @@ namespace Doomnet
                                 pen = penNormal;
                                 break;
                         }
+                        if (line.left == null)
+                            pen = penImpass;
+                    }
                     else
                     {
                         pen = penNormal;
