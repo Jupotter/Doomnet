@@ -12,6 +12,29 @@ namespace Doomnet
 {
     class Level
     {
+        internal class Linedef
+        {
+            [Flags]
+            public enum Flags
+            {
+                Impassible = 1 << 0,
+                BlockMonsters = 1 << 1,
+                TwoSided  = 1 << 2,
+                UpperUnpegged = 1 << 3,
+                LowerUnpegged  =1 << 4,
+                Secret  = 1 << 5,
+                BlockSound = 1 << 6,
+                NotOnMap = 1 << 7,
+                AlreadyOnMap = 1 << 8,
+            }
+
+            public Vertex start, end;
+            public Flags flags;
+            public short type;
+            public short tag;
+            public short right, left;
+        }
+
         private class Segment
         {
             public Vertex start, end;
@@ -38,7 +61,8 @@ namespace Doomnet
         }
 
         private List<Vertex> vertices = new List<Vertex>();
-        private List<Segment> segments = new List<Segment>(); 
+        private List<Segment> segments = new List<Segment>();
+        private List<Linedef> linedefs = new List<Linedef>(); 
         private LevelDef definition;
 
         public Level(LevelDef definition)
@@ -51,6 +75,36 @@ namespace Doomnet
             ReadVertices(stream);
 
             ReadSegments(stream);
+
+            ReadLinedefs(stream);
+        }
+
+        private void ReadLinedefs(Stream stream)
+        {
+            stream.Seek(definition.Linedefs.Offset, SeekOrigin.Begin);
+
+            for (int i = 0; i < definition.Linedefs.Size/14; i++)
+            {
+                var buffer = new byte[14];
+
+                stream.Read(buffer, 0, 14);
+
+                var start = vertices[BitConverter.ToInt16(buffer, 0)];
+                var end = vertices[BitConverter.ToInt16(buffer, 2)];
+
+                var l = new Linedef
+                {
+                    start = start,
+                    end = end,
+                    flags = (Linedef.Flags) BitConverter.ToInt16(buffer, 4),
+                    type = BitConverter.ToInt16(buffer, 6),
+                    tag = BitConverter.ToInt16(buffer, 8),
+                    right = BitConverter.ToInt16(buffer, 10),
+                    left = BitConverter.ToInt16(buffer, 12),
+                };
+
+                linedefs.Add(l);
+            }
         }
 
         private void ReadSegments(Stream stream)
