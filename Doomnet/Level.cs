@@ -67,10 +67,19 @@ namespace Doomnet
             }
         }
 
+        public class Thing
+        {
+            public short posX, posY;
+            public short angle;
+            public short type;
+            public short options;
+        }
+
         private List<Vertex> vertices = new List<Vertex>();
         private List<Segment> segments = new List<Segment>();
         private List<Linedef> linedefs = new List<Linedef>();
         private List<Sidedef> sidedefs = new List<Sidedef>(); 
+        private List<Thing> things = new List<Thing>(); 
         private LevelDef definition;
 
         public Level(LevelDef definition)
@@ -81,13 +90,35 @@ namespace Doomnet
         public void Read(Stream stream)
         {
             ReadVertices(stream);
-
             ReadSegments(stream);
-
             ReadSidedefs(stream);
-
             ReadLinedefs(stream);
+            ReadThings(stream);
 
+            NormalizeLevel();
+        }
+
+        private void ReadThings(Stream stream)
+        {
+            stream.Seek(definition.THINGS.Offset, SeekOrigin.Begin);
+
+            for (int i = 0; i < definition.THINGS.Size/10; i++)
+            {
+                var buffer = new byte[10];
+
+                stream.Read(buffer, 0, 10);
+
+                var s = new Thing()
+                {
+                    posX = BitConverter.ToInt16(buffer, 0),
+                    posY = BitConverter.ToInt16(buffer, 2),
+                    angle = BitConverter.ToInt16(buffer, 4),
+                    type = BitConverter.ToInt16(buffer, 6),
+                    options = BitConverter.ToInt16(buffer, 8)
+                };
+
+                things.Add(s);
+            }
         }
 
         private void ReadSidedefs(Stream stream)
@@ -173,7 +204,7 @@ namespace Doomnet
             }
         }
 
-        private void NormalizeVertices()
+        private void NormalizeLevel()
         {
             var minX = vertices.Min(v => v.X);
             var minY = vertices.Min(v => v.Y);
@@ -181,6 +212,12 @@ namespace Doomnet
             {
                 vertex.X -= minX;
                 vertex.Y -= minY;
+            }
+
+            foreach (var thing in things)
+            {
+                thing.posX -= minX;
+                thing.posY -= minY;
             }
         }
 
@@ -202,8 +239,6 @@ namespace Doomnet
 
                 vertices.Add(v);
             }
-
-            NormalizeVertices();
         }
 
         public void SaveImage()
@@ -258,6 +293,12 @@ namespace Doomnet
                         pen = penNormal;
                     }
                     graphics.DrawLine(pen, segment.start.X, segment.start.Y, segment.end.X, segment.end.Y);
+                }
+
+                foreach (var thing in things)
+                {
+                    graphics.DrawLine(Pens.Red, thing.posX - 5, thing.posY - 5, thing.posX + 5, thing.posY + 5);
+                    graphics.DrawLine(Pens.Red, thing.posX - 5, thing.posY + 5, thing.posX + 5, thing.posY - 5);
                 }
             }
 
