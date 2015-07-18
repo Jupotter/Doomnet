@@ -22,11 +22,12 @@ namespace Doomnet
 
             wad.Read();
 
+            var levelDrawer = new LevelDrawer();
             var E1M1 = wad.LoadLevel("E1M1");
 
             var level = E1M1.Display();
 
-            E1M1.SaveImage();
+            levelDrawer.SaveImage(E1M1);
 
             //var troo = wad.ReadSprite("TROOA1");
 

@@ -46,6 +46,7 @@
     <Compile Include="Header.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="LevelDef.cs" />
+    <Compile Include="LevelDrawer.cs" />
     <Compile Include="Linedef.cs" />
     <Compile Include="Palette.cs" />
     <Compile Include="Program.cs" />

@@ -11,16 +11,46 @@ namespace Doomnet
 {
     class Level
     {
-        private List<Vertex> vertices = new List<Vertex>();
-        private List<Segment> segments = new List<Segment>();
-        private List<Linedef> linedefs = new List<Linedef>();
-        private List<Sidedef> sidedefs = new List<Sidedef>(); 
-        private List<Thing> things = new List<Thing>(); 
+        private readonly List<Vertex> vertices = new List<Vertex>();
+        private readonly List<Segment> segments = new List<Segment>();
+        private readonly List<Linedef> linedefs = new List<Linedef>();
+        private readonly List<Sidedef> sidedefs = new List<Sidedef>(); 
+        private readonly List<Thing> things = new List<Thing>(); 
         private LevelDef definition;
 
         public Level(LevelDef definition)
         {
             this.definition = definition;
+        }
+
+        public List<Vertex> Vertices
+        {
+            get { return vertices; }
+        }
+
+        public List<Segment> Segments
+        {
+            get { return segments; }
+        }
+
+        public List<Linedef> Linedefs
+        {
+            get { return linedefs; }
+        }
+
+        public List<Sidedef> Sidedefs
+        {
+            get { return sidedefs; }
+        }
+
+        public List<Thing> Things
+        {
+            get { return things; }
+        }
+
+        public LevelDef Definition
+        {
+            get { return definition; }
         }
 
         public void Read(Stream stream)
@@ -36,9 +66,9 @@ namespace Doomnet
 
         private void ReadThings(Stream stream)
         {
-            stream.Seek(definition.THINGS.Offset, SeekOrigin.Begin);
+            stream.Seek(Definition.THINGS.Offset, SeekOrigin.Begin);
 
-            for (int i = 0; i < definition.THINGS.Size/10; i++)
+            for (int i = 0; i < Definition.THINGS.Size/10; i++)
             {
                 var buffer = new byte[10];
 
@@ -53,15 +83,15 @@ namespace Doomnet
                     options = BitConverter.ToInt16(buffer, 8)
                 };
 
-                things.Add(s);
+                Things.Add(s);
             }
         }
 
         private void ReadSidedefs(Stream stream)
         {
-            stream.Seek(definition.Sidedefs.Offset, SeekOrigin.Begin);
+            stream.Seek(Definition.Sidedefs.Offset, SeekOrigin.Begin);
 
-            for (int i = 0; i < definition.Sidedefs.Size/30; i++)
+            for (int i = 0; i < Definition.Sidedefs.Size/30; i++)
             {
                 var buffer = new byte[30];
 
@@ -77,26 +107,26 @@ namespace Doomnet
                     sector = BitConverter.ToInt16(buffer, 28)
                 };
 
-                sidedefs.Add(s);
+                Sidedefs.Add(s);
             }
         }
 
         private void ReadLinedefs(Stream stream)
         {
-            stream.Seek(definition.Linedefs.Offset, SeekOrigin.Begin);
+            stream.Seek(Definition.Linedefs.Offset, SeekOrigin.Begin);
 
-            for (int i = 0; i < definition.Linedefs.Size/14; i++)
+            for (int i = 0; i < Definition.Linedefs.Size/14; i++)
             {
                 var buffer = new byte[14];
 
                 stream.Read(buffer, 0, 14);
 
-                var start = vertices[BitConverter.ToInt16(buffer, 0)];
-                var end = vertices[BitConverter.ToInt16(buffer, 2)];
+                var start = Vertices[BitConverter.ToInt16(buffer, 0)];
+                var end = Vertices[BitConverter.ToInt16(buffer, 2)];
 
                 var leftnum = BitConverter.ToInt16(buffer, 12);
-                var right = sidedefs[BitConverter.ToInt16(buffer, 10)];
-                var left = leftnum != -1 ? sidedefs[leftnum] : null;
+                var right = Sidedefs[BitConverter.ToInt16(buffer, 10)];
+                var left = leftnum != -1 ? Sidedefs[leftnum] : null;
 
                 var l = new Linedef
                 {
@@ -109,22 +139,22 @@ namespace Doomnet
                     left = left
                 };
 
-                linedefs.Add(l);
+                Linedefs.Add(l);
             }
         }
 
         private void ReadSegments(Stream stream)
         {
-            stream.Seek(definition.SEGS.Offset, SeekOrigin.Begin);
+            stream.Seek(Definition.SEGS.Offset, SeekOrigin.Begin);
 
-            for (int i = 0; i < definition.SEGS.Size/12; i++)
+            for (int i = 0; i < Definition.SEGS.Size/12; i++)
             {
                 var buffer = new byte[12];
 
                 stream.Read(buffer, 0, 12);
 
-                var start = vertices[BitConverter.ToInt16(buffer, 0)];
-                var end = vertices[BitConverter.ToInt16(buffer, 2)];
+                var start = Vertices[BitConverter.ToInt16(buffer, 0)];
+                var end = Vertices[BitConverter.ToInt16(buffer, 2)];
 
                 var s = new Segment
                 {
@@ -136,21 +166,21 @@ namespace Doomnet
                     offset = BitConverter.ToInt16(buffer, 10)
                 };
 
-                segments.Add(s);
+                Segments.Add(s);
             }
         }
 
         private void NormalizeLevel()
         {
-            var minX = vertices.Min(v => v.X);
-            var minY = vertices.Min(v => v.Y);
-            foreach (var vertex in vertices)
+            var minX = Vertices.Min(v => v.X);
+            var minY = Vertices.Min(v => v.Y);
+            foreach (var vertex in Vertices)
             {
                 vertex.X -= minX;
                 vertex.Y -= minY;
             }
 
-            foreach (var thing in things)
+            foreach (var thing in Things)
             {
                 thing.posX -= minX;
                 thing.posY -= minY;
@@ -159,9 +189,9 @@ namespace Doomnet
 
         private void ReadVertices(Stream stream)
         {
-            stream.Seek(definition.VERTEXES.Offset, SeekOrigin.Begin);
+            stream.Seek(Definition.VERTEXES.Offset, SeekOrigin.Begin);
 
-            for (int i = 0; i < definition.VERTEXES.Size/4; i++)
+            for (int i = 0; i < Definition.VERTEXES.Size/4; i++)
             {
                 var buffer = new byte[4];
 
@@ -173,80 +203,14 @@ namespace Doomnet
                     Y = BitConverter.ToInt16(buffer, 2),
                 };
 
-                vertices.Add(v);
+                Vertices.Add(v);
             }
-        }
-
-        public void SaveImage()
-        {
-            var width = vertices.Max(v => v.X) + 1;
-            var height = vertices.Max(v => v.X) + 1;
-            var bitmap = new Bitmap(width, height);
-
-            foreach (var vertex in vertices)
-            {
-                bitmap.SetPixel(vertex.X, vertex.Y, Color.Black);
-            }
-
-            var penNormal = new Pen(Color.Black);
-            var penImpass = new Pen(Color.Black, 3);
-            var penSecret = new Pen(Color.DarkGreen);
-            var penInvis = new Pen(Color.Gray);
-            var penTwoside = new Pen(Color.Red);
-            using (var graphics = Graphics.FromImage(bitmap))
-            {
-                foreach (var segment in segments)
-                {
-                    var line = linedefs.FirstOrDefault(l => (segment.start == l.start && segment.end == l.end)
-                        || (segment.end == l.start && segment.start == l.end));
-                    
-                    Pen pen;
-                    if (line != null)
-                    {
-                        switch (line.flags)
-                        {
-                            case Linedef.Flags.Secret:
-                                pen = penSecret;
-                                break;
-                            case Linedef.Flags.NotOnMap:
-                                pen = penInvis;
-                                break;
-                            case Linedef.Flags.Impassible:
-                                pen = penImpass;
-                                break;
-                            case Linedef.Flags.TwoSided:
-                                pen = penTwoside;
-                                break;
-                            default:
-                                pen = penNormal;
-                                break;
-                        }
-                        if (line.left == null)
-                            pen = penImpass;
-                    }
-                    else
-                    {
-                        pen = penNormal;
-                    }
-                    graphics.DrawLine(pen, segment.start.X, segment.start.Y, segment.end.X, segment.end.Y);
-                }
-
-                foreach (var thing in things)
-                {
-                    graphics.DrawLine(Pens.Red, thing.posX - 5, thing.posY - 5, thing.posX + 5, thing.posY + 5);
-                    graphics.DrawLine(Pens.Red, thing.posX - 5, thing.posY + 5, thing.posX + 5, thing.posY - 5);
-                }
-            }
-
-            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
-
-            bitmap.Save(definition.Name.Trim() + ".png");
         }
 
         public IntPtr Display()
         {
-            var width = vertices.Max(v => v.X);
-            var height = vertices.Max(v => v.X);
+            var width = Vertices.Max(v => v.X);
+            var height = Vertices.Max(v => v.X);
 
             var surface = SDL.SDL_CreateRGBSurface(0,
                 width, height,
@@ -257,7 +221,7 @@ namespace Doomnet
 
             var pixels = new Int32[width * height];
 
-            foreach (var vertex in vertices)
+            foreach (var vertex in Vertices)
             {
                 pixels[vertex.Y * width + vertex.X] = color;
             }
