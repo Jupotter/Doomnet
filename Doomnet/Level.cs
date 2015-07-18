@@ -4,8 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using SDL2;
 
 namespace Doomnet
@@ -178,11 +176,42 @@ namespace Doomnet
                 bitmap.SetPixel(vertex.X, vertex.Y, Color.Black);
             }
 
-            var pen = new Pen(Color.Black);
+            var penNormal = new Pen(Color.Black);
+            var penImpass = new Pen(Color.Black, 3);
+            var penSecret = new Pen(Color.DarkGreen);
+            var penInvis = new Pen(Color.Gray);
+            var penTwoside = new Pen(Color.Red);
             using (var graphics = Graphics.FromImage(bitmap))
             {
                 foreach (var segment in segments)
                 {
+                    var line = linedefs.FirstOrDefault(l => (segment.start == l.start && segment.end == l.end)
+                        || (segment.end == l.start && segment.start == l.end));
+                    
+                    Pen pen;
+                    if (line != null)
+                        switch (line.flags)
+                        {
+                            case Linedef.Flags.Secret:
+                                pen = penSecret;
+                                break;
+                            case Linedef.Flags.NotOnMap:
+                                pen = penInvis;
+                                break;
+                            case Linedef.Flags.Impassible:
+                                pen = penImpass;
+                                break;
+                            case Linedef.Flags.TwoSided:
+                                pen = penTwoside;
+                                break;
+                            default:
+                                pen = penNormal;
+                                break;
+                        }
+                    else
+                    {
+                        pen = penNormal;
+                    }
                     graphics.DrawLine(pen, segment.start.X, segment.start.Y, segment.end.X, segment.end.Y);
                 }
             }
