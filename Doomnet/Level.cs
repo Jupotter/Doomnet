@@ -17,6 +17,8 @@ namespace Doomnet
         private readonly List<Sidedef> sidedefs = new List<Sidedef>(); 
         private readonly List<Thing> things = new List<Thing>(); 
         private LevelDef definition;
+        private int width = 0;
+        private int height = 0;
 
         public Level(LevelDef definition)
         {
@@ -51,6 +53,16 @@ namespace Doomnet
         public LevelDef Definition
         {
             get { return definition; }
+        }
+
+        public int Width
+        {
+            get { return width; }
+        }
+
+        public int Height
+        {
+            get { return height; }
         }
 
         public void Read(Stream stream)
@@ -185,6 +197,9 @@ namespace Doomnet
                 thing.posX -= minX;
                 thing.posY -= minY;
             }
+
+            width = Vertices.Max(v => v.X);
+            height = Vertices.Max(v => v.X);
         }
 
         private void ReadVertices(Stream stream)

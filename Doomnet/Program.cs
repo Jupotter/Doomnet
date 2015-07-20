@@ -1,19 +1,31 @@
-﻿using SDL2;
+﻿using System.Drawing;
+using System.Linq;
+using System.Runtime.InteropServices;
+using SDL2;
 using System;
 using System.IO;
 
 namespace Doomnet
 {
-    internal static class Program
+    internal class Program
     {
-        private static void Main(string[] args)
+        private const int WIDTH = 1600;
+        private const int HEIGHT = 900;
+
+        static void Main(string[] args)
+        {
+            var p = new Program();
+            p.MyMain(args);
+        }
+
+        private void MyMain(string[] args)
         {
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
 
             IntPtr window = SDL.SDL_CreateWindow("DoomNet",
                 SDL.SDL_WINDOWPOS_UNDEFINED,
                 SDL.SDL_WINDOWPOS_UNDEFINED,
-                800, 600,
+                WIDTH, HEIGHT,
                 SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
 
             var screenSurface = SDL.SDL_GetWindowSurface(window);
@@ -23,22 +35,73 @@ namespace Doomnet
             wad.Read();
 
             var levelDrawer = new LevelDrawer();
-            var E1M1 = wad.LoadLevel("E1M1");
+            var level = wad.LoadLevel("E1M1");
 
-            var level = E1M1.Display();
+            levelDrawer.SaveImage(level);
 
-            levelDrawer.SaveImage(E1M1);
+            var width = level.Width;
+            var height = level.Height;
+            var bitmap = new Bitmap(width, height);
 
-            //var troo = wad.ReadSprite("TROOA1");
+            var start = level.Things.First(t => t.type == 1);
 
-            SDL.SDL_BlitSurface(level, IntPtr.Zero, screenSurface, IntPtr.Zero);
+            SDL.SDL_Rect smallRect;
+            IntPtr smalRectPtr;
+            unsafe
+            {
+                smalRectPtr = Marshal.AllocHGlobal(sizeof (SDL.SDL_Rect));
+                smallRect = new SDL.SDL_Rect {h = 300, w = 300, x = start.posX - 150, y = start.posY - 150};
+                Marshal.StructureToPtr(smallRect, smalRectPtr, false);
+            }
+            var angle = 0;
 
-            SDL.SDL_UpdateWindowSurface(window);
+            bool end = false;
+            while (end == false)
+            {
+                SDL.SDL_Event @event;
+                if (SDL.SDL_PollEvent(out @event) != 0)
+                {
+                    switch (@event.type)
+                    {
+                        case SDL.SDL_EventType.SDL_QUIT:
+                            end = true;
+                            break;
+                        case SDL.SDL_EventType.SDL_KEYDOWN:
+                            if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_LEFT)
+                            {
+                                angle--;
+                            }
+                            if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RIGHT)
+                            {
+                                angle++;
+                            }
+                            break;
+                    }
+                }
+                //angle++;
+                var surface = ViewRenderer.DrawVision(start, angle, level);
 
-            SDL.SDL_Delay(5000);
+                //bitmap.Save(level.Definition.Name.Trim() + "FP.png");
 
+                //var troo = wad.ReadSprite("TROOA1");
+
+                SDL.SDL_BlitSurface(surface, IntPtr.Zero, screenSurface, IntPtr.Zero);
+                SDL.SDL_BlitSurface(ViewRenderer.MapSurface, smalRectPtr, screenSurface, IntPtr.Zero);
+
+                SDL.SDL_UpdateWindowSurface(window);
+
+                SDL.SDL_Delay(50);
+
+            }
             SDL.SDL_DestroyWindow(window);
             SDL.SDL_Quit();
+        }
+
+        private readonly ViewRenderer viewRenderer = new ViewRenderer(WIDTH, HEIGHT);
+
+        public ViewRenderer ViewRenderer
+        {
+            get { return viewRenderer; }
         }
     }
 }

@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -56,6 +57,7 @@
     <Compile Include="Sprite.cs" />
     <Compile Include="Thing.cs" />
     <Compile Include="Vertex.cs" />
+    <Compile Include="ViewRenderer.cs" />
     <Compile Include="Wad.cs" />
   </ItemGroup>
   <ItemGroup>

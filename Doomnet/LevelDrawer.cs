@@ -29,7 +29,7 @@ namespace Doomnet
                 DrawThings(level, graphics);
             }
 
-            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            // bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
             bitmap.Save(level.Definition.Name.Trim() + ".png");
         }
