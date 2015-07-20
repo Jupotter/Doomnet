@@ -50,10 +50,8 @@ namespace Doomnet
             unsafe
             {
                 smalRectPtr = Marshal.AllocHGlobal(sizeof (SDL.SDL_Rect));
-                smallRect = new SDL.SDL_Rect {h = 300, w = 300, x = start.posX - 150, y = start.posY - 150};
-                Marshal.StructureToPtr(smallRect, smalRectPtr, false);
             }
-            var angle = 0;
+            int angle = start.angle;
 
             bool end = false;
             while (end == false)
@@ -75,6 +73,21 @@ namespace Doomnet
                             {
                                 angle++;
                             }
+                            
+                            if (angle < 0)
+                                angle = 360 + angle;
+                            angle = angle%360;
+
+                            if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_UP)
+                            {
+                                start.posX += (short)(Math.Cos(angle * Math.PI / 180) * 10);
+                                start.posY += (short)(Math.Sin(angle * Math.PI / 180) * 10);
+                            }
+                            if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_DOWN)
+                            {
+                                start.posX -= (short)(Math.Cos(angle * Math.PI/180) * 10);  
+                                start.posY -= (short)(Math.Sin(angle * Math.PI/180) * 10);
+                            }
                             break;
                     }
                 }
@@ -84,6 +97,9 @@ namespace Doomnet
                 //bitmap.Save(level.Definition.Name.Trim() + "FP.png");
 
                 //var troo = wad.ReadSprite("TROOA1");
+
+                smallRect = new SDL.SDL_Rect { h = 300, w = 300, x = start.posX - 150, y = start.posY - 150 };
+                Marshal.StructureToPtr(smallRect, smalRectPtr, true);
 
                 SDL.SDL_BlitSurface(surface, IntPtr.Zero, screenSurface, IntPtr.Zero);
                 SDL.SDL_BlitSurface(ViewRenderer.MapSurface, smalRectPtr, screenSurface, IntPtr.Zero);

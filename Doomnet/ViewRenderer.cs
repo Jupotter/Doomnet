@@ -53,7 +53,7 @@ namespace Doomnet
             for (int i = 0; i < sWidth; i++)
             {
                 var aDelta = baseAngle*i/sWidth - baseAngle/2;
-                var alph = start.angle + aDelta + angle;
+                var alph = aDelta + angle;
                 alph = alph % 360;
 
                 int p1X;
