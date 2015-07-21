@@ -37,6 +37,11 @@ namespace Doomnet
             get { return viewSurface; }
         }
 
+        public IntPtr Renderer
+        {
+            get { return renderer; }
+        }
+
         public IntPtr DrawVision(Thing start, int angle, Level level)
         {
             SDL.SDL_SetRenderDrawColor(mapRenderer, 100, 149, 237, 255);
@@ -101,6 +106,13 @@ namespace Doomnet
                                    Math.Pow(start.posY - intersection.Item2, 2);
                     distance = Math.Sqrt(distance) * Math.Cos(aDelta * TO_RADIAN);
 
+                    var offset = (int)Math.Sqrt(Math.Pow(intersection.Item1 - segment.start.X, 2) +
+                                 Math.Pow(intersection.Item2 - segment.start.Y, 2));
+
+                    var texture = segment.right.middle;
+
+                    offset = offset%texture.Width;
+
                     var color =(byte)((distance/level.Width * 4)*255);
 
                     SDL.SDL_SetRenderDrawColor(renderer,
@@ -110,9 +122,25 @@ namespace Doomnet
                         color,color,color, 255);
 
                     int colHeight = (int)(300 / distance * 150 ) ;
-                    SDL.SDL_RenderDrawLine(renderer, i, sHeight/2 - colHeight/2, i, sHeight/2 + colHeight/2);
+                    //SDL.SDL_RenderDrawLine(renderer, i, sHeight/2 - colHeight/2, i, sHeight/2 + colHeight/2);
                     SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, intersection.Item1,
                         intersection.Item2);
+
+                    var srcrect = new SDL.SDL_Rect
+                    {
+                        h = texture.Height,
+                        w = 1,
+                        x = offset,
+                        y=0
+                    };
+                    var dstrect = new SDL.SDL_Rect
+                    {
+                        h = colHeight,
+                        w = 1,
+                        x = i,
+                        y = sHeight / 2 - colHeight / 2
+                    };
+                    SDL.SDL_RenderCopy(renderer, texture.SdlTexture, ref srcrect, ref dstrect);
                 }
             }
 

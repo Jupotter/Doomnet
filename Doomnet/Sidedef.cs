@@ -3,7 +3,9 @@ namespace Doomnet
     internal class Sidedef
     {
         public short xOffset, yOffset;
-        public string upper, lower, middle;
+        public Texture upper;
+        public Texture lower;
+        public Texture middle;
         public short sector;
     }
 }

@@ -65,11 +65,11 @@ namespace Doomnet
             get { return height; }
         }
 
-        public void Read(Stream stream)
+        public void Read(Stream stream, Dictionary<string, Texture> textures)
         {
             ReadVertices(stream);
             ReadSegments(stream);
-            ReadSidedefs(stream);
+            ReadSidedefs(stream, textures);
             ReadLinedefs(stream);
             ReadThings(stream);
 
@@ -99,7 +99,7 @@ namespace Doomnet
             }
         }
 
-        private void ReadSidedefs(Stream stream)
+        private void ReadSidedefs(Stream stream, Dictionary<string, Texture> textures)
         {
             stream.Seek(Definition.Sidedefs.Offset, SeekOrigin.Begin);
 
@@ -109,14 +109,18 @@ namespace Doomnet
 
                 stream.Read(buffer, 0, 30);
 
+                var upper = Encoding.ASCII.GetString(buffer, 4, 8).Replace("\0", String.Empty);
+                var lower = Encoding.ASCII.GetString(buffer, 12, 8).Replace("\0", String.Empty);
+                var middle = Encoding.ASCII.GetString(buffer, 20, 8).Replace("\0", String.Empty);
+
                 var s = new Sidedef
                 {
                     xOffset = BitConverter.ToInt16(buffer, 0),
                     yOffset = BitConverter.ToInt16(buffer, 2),
-                    upper = Encoding.ASCII.GetString(buffer, 4, 8).Replace("\0", String.Empty),
-                    lower = Encoding.ASCII.GetString(buffer, 12, 8).Replace("\0", String.Empty),
-                    middle = Encoding.ASCII.GetString(buffer, 20, 8).Replace("\0", String.Empty),
-                    sector = BitConverter.ToInt16(buffer, 28)
+                    sector = BitConverter.ToInt16(buffer, 28),
+                    upper = upper != "-" ? textures[upper] : null,
+                    middle = middle != "-" ? textures[middle] : null,
+                    lower = lower != "-" ? textures[lower] : null,
                 };
 
                 Sidedefs.Add(s);

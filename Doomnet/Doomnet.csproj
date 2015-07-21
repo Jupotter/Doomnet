@@ -55,6 +55,7 @@
     <Compile Include="Segment.cs" />
     <Compile Include="Sidedef.cs" />
     <Compile Include="Sprite.cs" />
+    <Compile Include="Texture.cs" />
     <Compile Include="Thing.cs" />
     <Compile Include="Vertex.cs" />
     <Compile Include="ViewRenderer.cs" />

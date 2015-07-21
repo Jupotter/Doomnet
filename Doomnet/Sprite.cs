@@ -27,6 +27,16 @@ namespace Doomnet
             get { return surface; }
         }
 
+        public short Width
+        {
+            get { return width; }
+        }
+
+        public short Height
+        {
+            get { return height; }
+        }
+
         public void Read(Stream stream)
         {
             long start = stream.Position;
@@ -39,14 +49,14 @@ namespace Doomnet
             lOffset = BitConverter.ToInt16(header, 4);
             tOffset = BitConverter.ToInt16(header, 6);
 
-            data = new SDL.SDL_Color[width, height];
+            data = new SDL.SDL_Color[Width, Height];
 
-            var columns = new Int32[width];
-            var buffer = new Byte[width * 4];
+            var columns = new Int32[Width];
+            var buffer = new Byte[Width * 4];
 
-            stream.Read(buffer, 0, width * 4);
+            stream.Read(buffer, 0, Width * 4);
 
-            for (int i = 0; i < width; i++)
+            for (int i = 0; i < Width; i++)
             {
                 columns[i] = BitConverter.ToInt32(buffer, i * 4);
             }
@@ -73,23 +83,23 @@ namespace Doomnet
             }
 
             surface = SDL.SDL_CreateRGBSurface(0,
-                width, height,
+                Width, Height,
                 32, 0, 0, 0, 0);
 
             var structure = (SDL.SDL_Surface)Marshal.PtrToStructure(surface, typeof(SDL.SDL_Surface));
 
-            var pixels = new Int32[width * height];
+            var pixels = new Int32[Width * Height];
 
-            for (int i = 0; i < height; i++)
+            for (int i = 0; i < Height; i++)
             {
-                for (int j = 0; j < width; j++)
+                for (int j = 0; j < Width; j++)
                 {
                     var color = data[j, i];
-                    pixels[i * width + j] = (int)SDL.SDL_MapRGBA(structure.format, color.r, color.g, color.b, color.a);
+                    pixels[i * Width + j] = (int)SDL.SDL_MapRGBA(structure.format, color.r, color.g, color.b, color.a);
                 }
             }
 
-            Marshal.Copy(pixels, 0, structure.pixels, width * height);
+            Marshal.Copy(pixels, 0, structure.pixels, Width * Height);
         }
     }
 }

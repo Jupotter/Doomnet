@@ -34,8 +34,12 @@ namespace Doomnet
 
             wad.Read();
 
+            wad.LoadTextures();
             var levelDrawer = new LevelDrawer();
+            wad.CreateTexturesForRenderer(ViewRenderer.Renderer);
+
             var level = wad.LoadLevel("E1M1");
+
 
             levelDrawer.SaveImage(level);
 
@@ -67,11 +71,11 @@ namespace Doomnet
                         case SDL.SDL_EventType.SDL_KEYDOWN:
                             if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_LEFT)
                             {
-                                angle--;
+                                angle -= 10;
                             }
                             if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RIGHT)
                             {
-                                angle++;
+                                angle += 10;
                             }
                             
                             if (angle < 0)
@@ -80,13 +84,13 @@ namespace Doomnet
 
                             if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_UP)
                             {
-                                start.posX += (short)(Math.Cos(angle * Math.PI / 180) * 10);
-                                start.posY += (short)(Math.Sin(angle * Math.PI / 180) * 10);
+                                start.posX += (short)(Math.Cos(angle * Math.PI / 180) * 25);
+                                start.posY += (short)(Math.Sin(angle * Math.PI / 180) * 25);
                             }
                             if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_DOWN)
                             {
-                                start.posX -= (short)(Math.Cos(angle * Math.PI/180) * 10);  
-                                start.posY -= (short)(Math.Sin(angle * Math.PI/180) * 10);
+                                start.posX -= (short)(Math.Cos(angle * Math.PI/180) * 25);  
+                                start.posY -= (short)(Math.Sin(angle * Math.PI/180) * 25);
                             }
                             break;
                     }
@@ -98,11 +102,12 @@ namespace Doomnet
 
                 //var troo = wad.ReadSprite("TROOA1");
 
-                smallRect = new SDL.SDL_Rect { h = 300, w = 300, x = start.posX - 150, y = start.posY - 150 };
+                smallRect = new SDL.SDL_Rect { h = 1000, w = 1000, x = start.posX - 500, y = start.posY - 500 };
+                var fullRect = new SDL.SDL_Rect { h = 300, w = 300, x = 0, y = 0 };
                 Marshal.StructureToPtr(smallRect, smalRectPtr, true);
 
                 SDL.SDL_BlitSurface(surface, IntPtr.Zero, screenSurface, IntPtr.Zero);
-                SDL.SDL_BlitSurface(ViewRenderer.MapSurface, smalRectPtr, screenSurface, IntPtr.Zero);
+                SDL.SDL_BlitScaled(ViewRenderer.MapSurface, ref smallRect, screenSurface, ref fullRect);
 
                 SDL.SDL_UpdateWindowSurface(window);
 
