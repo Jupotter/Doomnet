@@ -87,11 +87,26 @@ namespace Doomnet
                     p1Y = 0;
                 }
 
-                var segment =
-                    level.Linedefs.FirstOrDefault(
-                        seg => FindIntersection(p0X, p0Y, p1X, p1Y, seg.start.X, seg.start.Y, seg.end.X, seg.end.Y) !=
-                               null && (seg.flags & Linedef.Flags.Impassible) != 0 &&
-                               (seg.flags & Linedef.Flags.TwoSided) == 0);
+                Linedef segment = null;
+                var minDistance = int.MaxValue;
+                Tuple<int, int> intersection = null;
+
+                foreach (var seg in level.Linedefs)
+                {
+                    var locIntersection = FindIntersection(p0X, p0Y, p1X, p1Y, 
+                        seg.start.X, seg.start.Y, seg.end.X, seg.end.Y);
+
+                    if (locIntersection == null
+                        || seg.right.middle == null)
+                        continue;
+
+                    var distance = Math.Pow(start.posX - locIntersection.Item1, 2) +
+                                   Math.Pow(start.posY - locIntersection.Item2, 2);
+                    if (!(distance < minDistance)) continue;
+                    segment = seg;
+                    minDistance = (int) distance;
+                    intersection = locIntersection;
+                }
 
                 if (segment == null)
                 {
@@ -99,9 +114,6 @@ namespace Doomnet
                 }
                 else
                 {
-                    var intersection = FindIntersection(p0X, p0Y, p1X, p1Y, segment.start.X, segment.start.Y,
-                        segment.end.X, segment.end.Y);
-
                     var distance = Math.Pow(start.posX - intersection.Item1, 2) +
                                    Math.Pow(start.posY - intersection.Item2, 2);
                     distance = Math.Sqrt(distance) * Math.Cos(aDelta * TO_RADIAN);
