@@ -97,31 +97,18 @@ namespace Doomnet
             int p0X = start.posX;
             int p0Y = start.posY;
             double minAngle = 0;
-            FileStream file = new FileStream("output.csv", FileMode.Create);
-            StreamWriter output = new StreamWriter(file);
             for (int i = 0; i < sWidth; i++)
             {
                 var aDelta = baseAngle*i/sWidth - baseAngle/2;
                 var alph = aDelta + angle;
                 if (alph < 0)
                     alph += 360;
-                alph = alph % 360;
-
-                if (i == 0)
-                    minAngle = alph;
-                if (i == sWidth - 1)
-                {
-                    var maxAngle = alph;
-                    Console.WriteLine($"{minAngle}:{maxAngle}");
-                }
+                alph = alph%360;
 
                 var point = GetSideLine(p0X, p0Y, alph, width, height);
 
-
                 var p1X = point.Item1;
                 var p1Y = point.Item2;
-
-                output.WriteLine($"{alph};{p0X};{p0Y};{p1X};{p1Y};{width};{height}");
 
                 Linedef segment = null;
                 var minDistance = int.MaxValue;
@@ -129,7 +116,7 @@ namespace Doomnet
 
                 foreach (var seg in level.Linedefs)
                 {
-                    var locIntersection = FindIntersection(p0X, p0Y, p1X, p1Y, 
+                    var locIntersection = FindIntersection(p0X, p0Y, p1X, p1Y,
                         seg.start.X, seg.start.Y, seg.end.X, seg.end.Y);
 
                     if (locIntersection == null
@@ -148,55 +135,53 @@ namespace Doomnet
                 {
                     SDL.SDL_SetRenderDrawColor(mapRenderer,
                         255, 0, 0, 255);
-                    SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, (int)p1X, (int)p1Y);
+                    SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, (int) p1X, (int) p1Y);
                 }
                 else
                 {
                     var distance = Pow(start.posX - intersection.Item1, 2) +
                                    Pow(start.posY - intersection.Item2, 2);
-                    distance = Sqrt(distance) * Cos(aDelta * TO_RADIAN);
+                    distance = Sqrt(distance)*Cos(aDelta*TO_RADIAN);
 
-                    var offset = (int)Sqrt(Pow(intersection.Item1 - segment.start.X, 2) +
-                                 Pow(intersection.Item2 - segment.start.Y, 2));
+                    var offset = (int) Sqrt(Pow(intersection.Item1 - segment.start.X, 2) +
+                                            Pow(intersection.Item2 - segment.start.Y, 2));
 
                     var texture = segment.right.middle;
 
                     offset = offset%texture.Width;
 
-                    var color =(byte)((distance/level.Width * 4)*255);
+                    var color = (byte) ((distance/level.Width*4)*255);
 
                     SDL.SDL_SetRenderDrawColor(renderer,
-                        color,color,color, 255);
+                        color, color, color, 255);
 
                     SDL.SDL_SetRenderDrawColor(mapRenderer,
-                        color,color,color, 255);
+                        color, color, color, 255);
 
-                    int colHeight = (int)(300 / distance * 150 ) ;
+                    int colHeight = (int) (300/distance*150);
                     //SDL.SDL_RenderDrawLine(renderer, i, sHeight/2 - colHeight/2, i, sHeight/2 + colHeight/2);
                     //SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, (int)intersection.Item1,
                     //    (int)intersection.Item2);
 
-                    SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, (int)p1X, (int)p1Y);
+                    SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, (int) p1X, (int) p1Y);
 
                     var srcrect = new SDL.SDL_Rect
                     {
                         h = texture.Height,
                         w = 1,
                         x = offset,
-                        y=0
+                        y = 0
                     };
                     var dstrect = new SDL.SDL_Rect
                     {
                         h = colHeight,
                         w = 1,
                         x = i,
-                        y = sHeight / 2 - colHeight / 2
+                        y = sHeight/2 - colHeight/2
                     };
                     SDL.SDL_RenderCopy(renderer, texture.SdlTexture, ref srcrect, ref dstrect);
                 }
             }
-
-            file.Close();
 
             //Marshal.Copy(pixels, 0, structure.pixels, 1024 * 768);
             SDL.SDL_RenderPresent(renderer);
