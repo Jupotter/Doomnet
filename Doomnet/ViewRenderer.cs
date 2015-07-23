@@ -1,15 +1,14 @@
 using System;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.InteropServices;
+using System.IO;
 using SDL2;
+using static System.Math;
 
 namespace Doomnet
 {
-    internal class ViewRenderer
+    public class ViewRenderer
     {
 
-        private const double TO_RADIAN =  Math.PI / 180;
+        private const double TO_RADIAN =  PI / 180;
         private readonly int sWidth;
         private readonly int sHeight;
         private readonly IntPtr viewSurface;
@@ -19,8 +18,8 @@ namespace Doomnet
 
         public ViewRenderer(int width, int height)
         {
-            this.sWidth = width;
-            this.sHeight = height;
+            sWidth = width;
+            sHeight = height;
 
             viewSurface = SDL.SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
             renderer = SDL.SDL_CreateSoftwareRenderer(ViewSurface);
@@ -42,6 +41,48 @@ namespace Doomnet
             get { return renderer; }
         }
 
+        public Tuple<double, double> GetSideLine(int posX, int posY, double angle, int width, int height)
+        {
+            int p0X = posX;
+            int p0Y = posY;
+
+            var alph = angle;
+            double p1X;
+            double p1Y;
+
+            if (alph >= 0 && alph < 45)
+            {
+                p1Y = (width - p0X)*Tan(alph*TO_RADIAN) + p0Y;
+                p1X = width;
+            }
+            else if (alph >= 45 && alph < 135)
+            {
+                p1X = p0X - (height-p0Y)*Tan((alph - 90)*TO_RADIAN);
+                p1Y = height;
+            }
+            else if (alph >= 135 && alph < 225)
+            {
+                p1Y = p0Y - p0X*Tan((alph - 180)*TO_RADIAN);
+                p1X = 0;
+            }
+            else if (alph >= 225 && alph < 315)
+            {
+                p1X = p0Y*Tan((alph - 270)*TO_RADIAN) + p0X;
+                p1Y = 0;
+            }
+            else if (alph < 360 && alph >= 315)
+            {
+                p1Y = (width - p0X) * Tan(alph * TO_RADIAN) + p0Y;
+                p1X = width;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(angle), $"Angle must be between 0 and 360, value is {angle}");
+            }
+
+            return new Tuple<double, double>(p1X, p1Y);
+        }
+
         public IntPtr DrawVision(Thing start, int angle, Level level)
         {
             SDL.SDL_SetRenderDrawColor(mapRenderer, 100, 149, 237, 255);
@@ -55,41 +96,36 @@ namespace Doomnet
             const double baseAngle = 90;
             int p0X = start.posX;
             int p0Y = start.posY;
+            double minAngle = 0;
+            FileStream file = new FileStream("output.csv", FileMode.Create);
+            StreamWriter output = new StreamWriter(file);
             for (int i = 0; i < sWidth; i++)
             {
                 var aDelta = baseAngle*i/sWidth - baseAngle/2;
                 var alph = aDelta + angle;
+                if (alph < 0)
+                    alph += 360;
                 alph = alph % 360;
 
-                int p1X;
-                int p1Y;
+                if (i == 0)
+                    minAngle = alph;
+                if (i == sWidth - 1)
+                {
+                    var maxAngle = alph;
+                    Console.WriteLine($"{minAngle}:{maxAngle}");
+                }
 
-                p1X = 0;
-                p1Y = 0;
-                if (alph >= 0 && alph < 90)
-                {
-                    p1Y = (int)(p0X * Math.Tan(alph * TO_RADIAN)) + p0Y;
-                    p1X = width;
-                }
-                else if (alph >= 90 && alph < 180)
-                {
-                    p1Y = p0Y - (int)(p0X * Math.Tan(alph * TO_RADIAN));
-                    p1X = 0;
-                }
-                else if (alph >= 180 && alph < 270)
-                {
-                    p1Y = p0Y - (int)(p0X * Math.Tan(alph * TO_RADIAN));
-                    p1X = 0;
-                }
-                else
-                {
-                    p1X = p0X - (int)(p0Y * Math.Tan((90 - alph) * TO_RADIAN));
-                    p1Y = 0;
-                }
+                var point = GetSideLine(p0X, p0Y, alph, width, height);
+
+
+                var p1X = point.Item1;
+                var p1Y = point.Item2;
+
+                output.WriteLine($"{alph};{p0X};{p0Y};{p1X};{p1Y};{width};{height}");
 
                 Linedef segment = null;
                 var minDistance = int.MaxValue;
-                Tuple<int, int> intersection = null;
+                Tuple<double, double> intersection = null;
 
                 foreach (var seg in level.Linedefs)
                 {
@@ -100,8 +136,8 @@ namespace Doomnet
                         || seg.right.middle == null)
                         continue;
 
-                    var distance = Math.Pow(start.posX - locIntersection.Item1, 2) +
-                                   Math.Pow(start.posY - locIntersection.Item2, 2);
+                    var distance = Pow(start.posX - locIntersection.Item1, 2) +
+                                   Pow(start.posY - locIntersection.Item2, 2);
                     if (!(distance < minDistance)) continue;
                     segment = seg;
                     minDistance = (int) distance;
@@ -110,16 +146,18 @@ namespace Doomnet
 
                 if (segment == null)
                 {
-                    //graphics.DrawLine(new Pen(Color.FromArgb(100, Color.Red)), start.posX, start.posY, p1X, p1Y);
+                    SDL.SDL_SetRenderDrawColor(mapRenderer,
+                        255, 0, 0, 255);
+                    SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, (int)p1X, (int)p1Y);
                 }
                 else
                 {
-                    var distance = Math.Pow(start.posX - intersection.Item1, 2) +
-                                   Math.Pow(start.posY - intersection.Item2, 2);
-                    distance = Math.Sqrt(distance) * Math.Cos(aDelta * TO_RADIAN);
+                    var distance = Pow(start.posX - intersection.Item1, 2) +
+                                   Pow(start.posY - intersection.Item2, 2);
+                    distance = Sqrt(distance) * Cos(aDelta * TO_RADIAN);
 
-                    var offset = (int)Math.Sqrt(Math.Pow(intersection.Item1 - segment.start.X, 2) +
-                                 Math.Pow(intersection.Item2 - segment.start.Y, 2));
+                    var offset = (int)Sqrt(Pow(intersection.Item1 - segment.start.X, 2) +
+                                 Pow(intersection.Item2 - segment.start.Y, 2));
 
                     var texture = segment.right.middle;
 
@@ -135,8 +173,10 @@ namespace Doomnet
 
                     int colHeight = (int)(300 / distance * 150 ) ;
                     //SDL.SDL_RenderDrawLine(renderer, i, sHeight/2 - colHeight/2, i, sHeight/2 + colHeight/2);
-                    SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, intersection.Item1,
-                        intersection.Item2);
+                    //SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, (int)intersection.Item1,
+                    //    (int)intersection.Item2);
+
+                    SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, (int)p1X, (int)p1Y);
 
                     var srcrect = new SDL.SDL_Rect
                     {
@@ -156,6 +196,7 @@ namespace Doomnet
                 }
             }
 
+            file.Close();
 
             //Marshal.Copy(pixels, 0, structure.pixels, 1024 * 768);
             SDL.SDL_RenderPresent(renderer);
@@ -164,8 +205,8 @@ namespace Doomnet
             return ViewSurface;
         }
 
-        public static Tuple<int, int> FindIntersection(int p0X, int p0Y, int p1X, int p1Y,
-            int p2X, int p2Y, int p3X, int p3Y)
+        public static Tuple<double, double> FindIntersection(double p0X, double p0Y, double p1X, double p1Y,
+            double p2X, double p2Y, double p3X, double p3Y)
         {
             double s1X = p1X - p0X;
             double s1Y = p1Y - p0Y;
@@ -180,8 +221,7 @@ namespace Doomnet
 
                 if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
                 {
-                    return new Tuple<int, int>((int)(p0X + t * s1X),
-                        (int)(p0Y + t * s1Y));
+                    return new Tuple<double, double>(p0X + t * s1X, p0Y + t * s1Y);
                 }
             }
             catch (DivideByZeroException)
