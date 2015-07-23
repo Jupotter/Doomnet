@@ -1,6 +1,6 @@
 namespace Doomnet
 {
-    internal class Sidedef
+    public class Sidedef
     {
         public short xOffset, yOffset;
         public Texture upper;

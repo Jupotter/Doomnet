@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Doomnet
 {
-    internal class Header
+    public class Header
     {
         private string type;
         private Int32 lumps;

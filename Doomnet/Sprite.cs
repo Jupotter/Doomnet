@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Doomnet
 {
-    internal class Sprite
+    public class Sprite
     {
         private Int16 width;
         private Int16 height;

@@ -2,7 +2,7 @@ using System;
 
 namespace Doomnet
 {
-    internal class Vertex
+    public class Vertex
     {
         public short X;
         public short Y;

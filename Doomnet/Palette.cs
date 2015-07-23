@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Doomnet
 {
-    internal class Palette
+    public class Palette
     {
         private readonly Dictionary<int, SDL.SDL_Color> baseColors = new Dictionary<int, SDL.SDL_Color>();
 

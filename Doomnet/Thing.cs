@@ -1,6 +1,6 @@
 namespace Doomnet
 {
-    internal class Thing
+    public class Thing
     {
         public short posX, posY;
         public short angle;

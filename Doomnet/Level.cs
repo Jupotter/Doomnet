@@ -9,7 +9,7 @@ using SDL2;
 
 namespace Doomnet
 {
-    class Level
+    public class Level
     {
         private readonly List<Vertex> vertices = new List<Vertex>();
         private readonly List<Segment> segments = new List<Segment>();

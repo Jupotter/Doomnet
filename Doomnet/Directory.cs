@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace Doomnet
 {
-    internal class Directory
+    public class Directory
     {
         private static readonly Regex LevelName = new Regex(@"E\dM\d");
 

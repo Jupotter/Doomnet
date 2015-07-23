@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Doomnet
 {
-    internal class Wad
+    public class Wad
     {
         private readonly Stream stream;
 

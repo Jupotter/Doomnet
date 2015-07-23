@@ -2,7 +2,7 @@ using System;
 
 namespace Doomnet
 {
-    internal class Linedef
+    public class Linedef
     {
         [Flags]
         public enum Flags

@@ -9,7 +9,7 @@ using SDL2;
 
 namespace Doomnet
 {
-    class Texture
+    public class Texture
     {
         private class Patch
         {

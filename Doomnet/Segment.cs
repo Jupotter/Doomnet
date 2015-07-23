@@ -1,6 +1,6 @@
 namespace Doomnet
 {
-    internal class Segment
+    public  class Segment
     {
         public Vertex start, end;
         public short angle;

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Doomnet
 {
-    struct LevelDef
+    public struct LevelDef
     {
         public Directory.Entry Level;
         public Directory.Entry THINGS;
