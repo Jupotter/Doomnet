@@ -71,6 +71,7 @@ namespace Doomnet
                     VERTEXES = enumerable.First(e => e.Name == "VERTEXES"),
                     SEGS = enumerable.First(e => e.Name == "SEGS"),
                     THINGS = enumerable.First(e => e.Name == "THINGS"),
+                    SECTORS = enumerable.First(e => e.Name == "SECTORS"),
                 };
                 levels.Add(level);
             }

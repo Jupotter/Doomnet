@@ -6,6 +6,6 @@ namespace Doomnet
         public Texture upper;
         public Texture lower;
         public Texture middle;
-        public short sector;
+        public Sector sector;
     }
 }

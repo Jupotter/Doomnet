@@ -148,6 +148,10 @@ namespace Doomnet
 
                     var texture = segment.right.middle;
 
+                    var bottom = segment.right.sector.bottom;
+                    var top = segment.right.sector.top;
+                    var wallHeight = top - bottom;
+
                     offset = offset%texture.Width;
 
                     var color = (byte) ((distance/level.Width*4)*255);
@@ -158,7 +162,7 @@ namespace Doomnet
                     SDL.SDL_SetRenderDrawColor(mapRenderer,
                         color, color, color, 255);
 
-                    int colHeight = (int) (300/distance*150);
+                    int colHeight = (int) (wallHeight/distance*600);
                     //SDL.SDL_RenderDrawLine(renderer, i, sHeight/2 - colHeight/2, i, sHeight/2 + colHeight/2);
                     //SDL.SDL_RenderDrawLine(mapRenderer, start.posX, start.posY, (int)intersection.Item1,
                     //    (int)intersection.Item2);
@@ -177,7 +181,7 @@ namespace Doomnet
                         h = colHeight,
                         w = 1,
                         x = i,
-                        y = sHeight/2 - colHeight/2
+                        y = (sHeight + bottom)/2
                     };
                     SDL.SDL_RenderCopy(renderer, texture.SdlTexture, ref srcrect, ref dstrect);
                 }

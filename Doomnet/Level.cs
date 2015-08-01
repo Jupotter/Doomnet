@@ -15,8 +15,9 @@ namespace Doomnet
         private readonly List<Segment> segments = new List<Segment>();
         private readonly List<Linedef> linedefs = new List<Linedef>();
         private readonly List<Sidedef> sidedefs = new List<Sidedef>(); 
-        private readonly List<Thing> things = new List<Thing>(); 
-        private LevelDef definition;
+        private readonly List<Thing> things = new List<Thing>();
+        private readonly List<Sector> sectors = new List<Sector>();
+        private readonly LevelDef definition;
         private int width = 0;
         private int height = 0;
 
@@ -69,11 +70,37 @@ namespace Doomnet
         {
             ReadVertices(stream);
             ReadSegments(stream);
+            ReadSectors(stream);
             ReadSidedefs(stream, textures);
             ReadLinedefs(stream);
             ReadThings(stream);
 
             NormalizeLevel();
+        }
+
+        private void ReadSectors(Stream stream)
+        {
+            stream.Seek(Definition.SECTORS.Offset, SeekOrigin.Begin);
+
+            for (int i = 0; i < Definition.SECTORS.Size / 26; i++)
+            {
+                var buffer = new byte[26];
+
+                stream.Read(buffer, 0, 26);
+
+                var s = new Sector()
+                {
+                    bottom = BitConverter.ToInt16(buffer, 0),
+                    top = BitConverter.ToInt16(buffer, 2),
+                    ground = Encoding.ASCII.GetString(buffer, 4, 8).Replace("\0", string.Empty),
+                    ceiling = Encoding.ASCII.GetString(buffer, 12, 8).Replace("\0", string.Empty),
+                    light = BitConverter.ToInt16(buffer, 20),
+                    type = BitConverter.ToInt16(buffer, 22),
+                    tag = BitConverter.ToInt16(buffer, 24),
+                };
+
+                sectors.Add(s);
+            }
         }
 
         private void ReadThings(Stream stream)
@@ -109,15 +136,15 @@ namespace Doomnet
 
                 stream.Read(buffer, 0, 30);
 
-                var upper = Encoding.ASCII.GetString(buffer, 4, 8).Replace("\0", String.Empty);
-                var lower = Encoding.ASCII.GetString(buffer, 12, 8).Replace("\0", String.Empty);
-                var middle = Encoding.ASCII.GetString(buffer, 20, 8).Replace("\0", String.Empty);
+                var upper = Encoding.ASCII.GetString(buffer, 4, 8).Replace("\0", string.Empty);
+                var lower = Encoding.ASCII.GetString(buffer, 12, 8).Replace("\0", string.Empty);
+                var middle = Encoding.ASCII.GetString(buffer, 20, 8).Replace("\0", string.Empty);
 
                 var s = new Sidedef
                 {
                     xOffset = BitConverter.ToInt16(buffer, 0),
                     yOffset = BitConverter.ToInt16(buffer, 2),
-                    sector = BitConverter.ToInt16(buffer, 28),
+                    sector = sectors[BitConverter.ToInt16(buffer, 28)],
                     upper = upper != "-" ? textures[upper] : null,
                     middle = middle != "-" ? textures[middle] : null,
                     lower = lower != "-" ? textures[lower] : null,
