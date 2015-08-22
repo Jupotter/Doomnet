@@ -32,6 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -50,13 +51,16 @@
     <Compile Include="LevelDef.cs" />
     <Compile Include="LevelDrawer.cs" />
     <Compile Include="Linedef.cs" />
+    <Compile Include="Node.cs" />
     <Compile Include="Palette.cs" />
+    <Compile Include="PointD.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sector.cs" />
     <Compile Include="Segment.cs" />
     <Compile Include="Sidedef.cs" />
     <Compile Include="Sprite.cs" />
+    <Compile Include="SSector.cs" />
     <Compile Include="Texture.cs" />
     <Compile Include="Thing.cs" />
     <Compile Include="Vertex.cs" />

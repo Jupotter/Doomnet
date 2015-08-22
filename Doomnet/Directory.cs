@@ -72,6 +72,9 @@ namespace Doomnet
                     SEGS = enumerable.First(e => e.Name == "SEGS"),
                     THINGS = enumerable.First(e => e.Name == "THINGS"),
                     SECTORS = enumerable.First(e => e.Name == "SECTORS"),
+                    SSECTORS = enumerable.First(e => e.Name == nameof(LevelDef.SSECTORS)),
+                    NODES = enumerable.First(e => e.Name == nameof(LevelDef.NODES)),
+                    REJECT = enumerable.First(e => e.Name == nameof(LevelDef.REJECT)),
                 };
                 levels.Add(level);
             }

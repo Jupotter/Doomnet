@@ -43,10 +43,6 @@ namespace Doomnet
 
             levelDrawer.SaveImage(level);
 
-            var width = level.Width;
-            var height = level.Height;
-            var bitmap = new Bitmap(width, height);
-
             var start = level.Things.First(t => t.type == 1);
 
             SDL.SDL_Rect smallRect;
@@ -58,6 +54,7 @@ namespace Doomnet
             int angle = start.angle;
 
             bool end = false;
+            var showDebug = false;
             while (end == false)
             {
                 SDL.SDL_Event @event;
@@ -71,11 +68,11 @@ namespace Doomnet
                         case SDL.SDL_EventType.SDL_KEYDOWN:
                             if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_LEFT)
                             {
-                                angle -= 10;
+                                angle += 10;
                             }
                             if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RIGHT)
                             {
-                                angle += 10;
+                                angle -= 10;
                             }
                             
                             if (angle < 0)
@@ -92,6 +89,11 @@ namespace Doomnet
                                 start.posX -= (short)(Math.Cos(angle * Math.PI/180) * 25);  
                                 start.posY -= (short)(Math.Sin(angle * Math.PI/180) * 25);
                             }
+
+                            if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_SPACE)
+                            {
+                                showDebug = !showDebug;
+                            }
                             break;
                     }
                 }
@@ -103,15 +105,15 @@ namespace Doomnet
                 //var troo = wad.ReadSprite("TROOA1");
 
                 smallRect = new SDL.SDL_Rect { h = 1000, w = 1000, x = start.posX - 500, y = start.posY - 500 };
-                var fullRect = new SDL.SDL_Rect { h = 300, w = 300, x = 0, y = 0 };
+                var fullRect = new SDL.SDL_Rect { h = 500, w = 500, x = 0, y = 0 };
                 Marshal.StructureToPtr(smallRect, smalRectPtr, true);
 
                 SDL.SDL_BlitSurface(surface, IntPtr.Zero, screenSurface, IntPtr.Zero);
-                SDL.SDL_BlitScaled(ViewRenderer.MapSurface, ref smallRect, screenSurface, ref fullRect);
+                if (showDebug)
+                    SDL.SDL_BlitScaled(ViewRenderer.MapSurface, ref smallRect, screenSurface, ref fullRect);
 
                 SDL.SDL_UpdateWindowSurface(window);
-
-                SDL.SDL_Delay(50);
+                
 
             }
             SDL.SDL_DestroyWindow(window);

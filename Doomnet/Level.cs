@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using SDL2;
+using static System.BitConverter;
 
 namespace Doomnet
 {
@@ -17,6 +18,7 @@ namespace Doomnet
         private readonly List<Sidedef> sidedefs = new List<Sidedef>(); 
         private readonly List<Thing> things = new List<Thing>();
         private readonly List<Sector> sectors = new List<Sector>();
+        public Node RootNode { get; private set; }
         private readonly LevelDef definition;
         private int width = 0;
         private int height = 0;
@@ -69,13 +71,90 @@ namespace Doomnet
         public void Read(Stream stream, Dictionary<string, Texture> textures)
         {
             ReadVertices(stream);
-            ReadSegments(stream);
             ReadSectors(stream);
             ReadSidedefs(stream, textures);
             ReadLinedefs(stream);
+            ReadSegments(stream);
             ReadThings(stream);
+            ReadNodes(stream);
 
             NormalizeLevel();
+        }
+
+        private List<SSector> ReadSSectors(Stream stream)
+        {
+            var subSectors = new List<SSector>();
+            stream.Seek(Definition.SSECTORS.Offset, SeekOrigin.Begin);
+
+            for (int i = 0; i < Definition.SSECTORS.Size/4; i++)
+            {
+                var buffer = new byte[4];
+
+                stream.Read(buffer, 0, 4);
+
+                var size = ToInt16(buffer, 0);
+                var offset = ToInt16(buffer, 2);
+
+                var sect = new SSector(size, offset, Segments);
+
+                subSectors.Add(sect);
+            }
+            return subSectors;
+        }
+
+        private void ReadNodes(Stream stream)
+        {
+            var ssectors = ReadSSectors(stream);
+            var nodes = new List<Node>();
+
+            stream.Seek(Definition.NODES.Offset, SeekOrigin.Begin);
+
+            for (int i = 0; i < Definition.NODES.Size / 28; i++)
+            {
+                var buffer = new byte[28];
+
+                stream.Read(buffer, 0, 28);
+
+                var n = new Node()
+                {
+                    StartX = ToInt16(buffer, 0),
+                    StartY = ToInt16(buffer, 2),
+                    EndX = ToInt16(buffer, 4),
+                    EndY = ToInt16(buffer, 6),
+                    RightTopY = ToInt16(buffer, 8),
+                    RightBotY = ToInt16(buffer, 10),
+                    RightBotX = ToInt16(buffer, 12),
+                    RightTopX = ToInt16(buffer, 14),
+                    LeftTopY = ToInt16(buffer, 16),
+                    LeftBotY = ToInt16(buffer, 18),
+                    LeftBotX = ToInt16(buffer, 20),
+                    LeftTopX = ToInt16(buffer, 22),
+                    RightNum = ToUInt16(buffer, 24),
+                    LeftNum = ToUInt16(buffer, 26),
+                };
+
+                if ((n.RightNum & (0x1 << 15)) != 0)
+                {
+                    n.RightNum -= (0x1 << 15);
+                    n.RightSector = ssectors[n.RightNum];
+                }
+                else
+                {
+                    n.RightNode = nodes[n.RightNum];
+                }
+                if ((n.LeftNum & (0x1 << 15)) != 0)
+                {
+                    n.LeftNum -= (0x1 << 15);
+                    n.LeftSector = ssectors[n.LeftNum];
+                }
+                else
+                {
+                    n.LeftNode = nodes[n.LeftNum];
+                }
+
+                nodes.Add(n);
+            }
+            RootNode = nodes.Last();
         }
 
         private void ReadSectors(Stream stream)
@@ -196,17 +275,18 @@ namespace Doomnet
 
                 stream.Read(buffer, 0, 12);
 
-                var start = Vertices[BitConverter.ToInt16(buffer, 0)];
-                var end = Vertices[BitConverter.ToInt16(buffer, 2)];
+                var start = Vertices[ToInt16(buffer, 0)];
+                var end = Vertices[ToInt16(buffer, 2)];
+                var line = Linedefs[ToInt16(buffer, 6)];
 
                 var s = new Segment
                 {
                     start = start,
                     end = end,
-                    angle = BitConverter.ToInt16(buffer, 4),
-                    line = BitConverter.ToInt16(buffer, 6),
-                    reverse = BitConverter.ToInt16(buffer, 8) != 0,
-                    offset = BitConverter.ToInt16(buffer, 10)
+                    angle = ToInt16(buffer, 4),
+                    line = line,
+                    reverse = ToInt16(buffer, 8) != 0,
+                    offset = ToInt16(buffer, 10)
                 };
 
                 Segments.Add(s);
@@ -229,8 +309,31 @@ namespace Doomnet
                 thing.posY -= minY;
             }
 
+            NormalizeNode(RootNode, minX, minY);
+
             width = Vertices.Max(v => v.X);
             height = Vertices.Max(v => v.X);
+        }
+
+        private void NormalizeNode(Node node, short minX, short minY)
+        {
+            node.LeftBotX -= minX;
+            node.LeftBotY -= minY;
+            node.LeftTopX -= minX;
+            node.LeftTopY -= minY;
+            node.RightBotX -= minX;
+            node.RightBotY -= minY;
+            node.RightTopX -= minX;
+            node.RightTopY -= minY;
+            node.StartX -= minX;
+            node.StartY -= minY;
+            node.EndX -= minX;
+            node.EndY -= minY;
+
+            if (node.LeftNode != null)
+                NormalizeNode(node.LeftNode, minX, minY);
+            if (node.RightNode != null)
+                NormalizeNode(node.RightNode, minX, minY);
         }
 
         private void ReadVertices(Stream stream)

@@ -4,7 +4,7 @@ namespace Doomnet
     {
         public Vertex start, end;
         public short angle;
-        public short line;
+        public Linedef line;
         public bool reverse;
         public short offset;
 
