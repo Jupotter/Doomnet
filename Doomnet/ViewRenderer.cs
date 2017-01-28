@@ -1,17 +1,13 @@
+using SDL2;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
-using SDL2;
 using static System.Math;
 
 namespace Doomnet
 {
     public class ViewRenderer
     {
-
         private const double TO_RADIAN = PI / 180;
         private readonly int sWidth;
         private readonly int sHeight;
@@ -46,6 +42,15 @@ namespace Doomnet
             get { return renderer; }
         }
 
+        /// <summary>
+        /// Get point intersecting the side of the level bounding box
+        /// </summary>
+        /// <param name="posX">X position of the player</param>
+        /// <param name="posY">Y position of the player</param>
+        /// <param name="angle">View angle of the player</param>
+        /// <param name="width">width of the level Bounding box</param>
+        /// <param name="height">height of the level bounding box</param>
+        /// <returns></returns>
         public Tuple<double, double> GetSideLine(int posX, int posY, double angle, int width, int height)
         {
             int p0X = posX;
@@ -94,6 +99,13 @@ namespace Doomnet
         private PointD point1 = new PointD();
         private PointD point2 = new PointD();
 
+        /// <summary>
+        /// Draw what is visible to the player
+        /// </summary>
+        /// <param name="start">Player position</param>
+        /// <param name="angle">Player view angle</param>
+        /// <param name="level">Current level</param>
+        /// <returns></returns>
         public IntPtr DrawVision(Thing start, int angle, Level level)
         {
             this.level = level;
@@ -110,28 +122,25 @@ namespace Doomnet
             int p0Y = start.posY;
             var rootNode = level.RootNode;
 
-
             var i = 0;
             aDelta = baseAngle * i / sWidth - baseAngle / 2;
-            var alph = aDelta + angle;
-            if (alph < 0)
-                alph += 360;
-            alph = alph % 360;
+            var alpha = aDelta + angle;
+            if (alpha < 0)
+                alpha += 360;
+            alpha = alpha % 360;
 
-            var point = GetSideLine(p0X, p0Y, alph, width, height);
+            var point = GetSideLine(p0X, p0Y, alpha, width, height);
 
             var p1X = point.Item1;
             var p1Y = point.Item2;
 
             point2 = new PointD { X = p1X, Y = p1Y };
 
-
-
             SortSectors(rootNode, new PointD { X = start.posX, Y = start.posY });
 
             SDL.SDL_SetRenderDrawColor(mapRenderer, 255, 0, 0, 255);
 
-            SDL.SDL_RenderDrawLine(mapRenderer, (int)p0X, (int)p0Y, (int) p1X, (int) p1Y);
+            SDL.SDL_RenderDrawLine(mapRenderer, (int)p0X, (int)p0Y, (int)p1X, (int)p1Y);
 
             //foreach (var sector in sectors)
             //{
@@ -140,9 +149,6 @@ namespace Doomnet
             //    RenderSsector(sector, new PointD {X = start.posX, Y = start.posY}, new PointD {X = p1X, Y = p1Y});
             //}
 
-
-
-
             //Marshal.Copy(pixels, 0, structure.pixels, 1024 * 768);
             SDL.SDL_RenderPresent(renderer);
             SDL.SDL_RenderPresent(mapRenderer);
@@ -150,8 +156,7 @@ namespace Doomnet
             return ViewSurface;
         }
 
-
-        double GetPointsAngle(PointD a, PointD b, PointD c)
+        private double GetPointsAngle(PointD a, PointD b, PointD c)
         {
             var ab2 = Pow(a.X - b.X, 2) + Pow(a.Y - b.Y, 2);
             var ac2 = Pow(a.X - c.X, 2) + Pow(a.Y - c.Y, 2);
@@ -164,7 +169,7 @@ namespace Doomnet
             return angle;
         }
 
-        int AngleToScreen(double angle)
+        private int AngleToScreen(double angle)
         {
             angle = -45.0 * TO_RADIAN + angle;
             if (angle < 0)
@@ -229,8 +234,7 @@ namespace Doomnet
                 SDL.SDL_RenderDrawLine(mapRenderer, (int)start.X, (int)start.Y, segment.start.X, segment.start.Y);
                 SDL.SDL_RenderDrawLine(mapRenderer, (int)start.X, (int)start.Y, segment.end.X, segment.end.Y);
 
-
-                if (oSidedef != null)
+                if (oSidedef != null )
                 {
                     for (int i = min; i < max; i++)
                     {
@@ -272,7 +276,6 @@ namespace Doomnet
                 bottom = sidedef.sector.bottom;
                 top = sidedef.sector.top;
 
-
                 for (int i = min; i < max; i++)
                 {
                     var loffset = (short)((offset + i) % texture.Width);
@@ -285,7 +288,8 @@ namespace Doomnet
         private void DrawColumn(short top, short bottom, double distance, Texture texture, int offset, int column)
         {
             var wallHeight = top - bottom;
-            var colHeight = (int)(wallHeight / distance * 600);
+            var colHeight = (int)(wallHeight / distance * sHeight);
+            var viewBottom = (int)((bottom - 64)  / distance * sHeight);
 
             var srcrect = new SDL.SDL_Rect
             {
@@ -299,7 +303,7 @@ namespace Doomnet
                 h = colHeight,
                 w = 1,
                 x = sWidth - column,
-                y = sHeight / 4 - bottom
+                y = sHeight/2 - (viewBottom + colHeight)
             };
 
             SDL.SDL_RenderCopy(renderer, texture.SdlTexture, ref srcrect, ref dstrect);
@@ -316,7 +320,7 @@ namespace Doomnet
             var side = Sign((node.EndX - node.StartX) * (start.Y - node.StartY) -
                             (node.EndY - node.StartY) * (start.X - node.StartX));
 
-            //side = -side;
+            side = -side;
 
             if (side > 0)
             {
@@ -324,12 +328,16 @@ namespace Doomnet
                 if (node.LeftNode != null)
                     SortSectors(node.LeftNode, start);
                 else
+                {
                     RenderSsector(node.LeftSector, start, point2);
+                }
 
                 if (node.RightNode != null)
                     SortSectors(node.RightNode, start);
                 else
+                {
                     RenderSsector(node.RightSector, start, point2);
+                }
             }
             else if (side < 0)
             {
@@ -337,19 +345,22 @@ namespace Doomnet
                 if (node.RightNode != null)
                     SortSectors(node.RightNode, start);
                 else
+                {
                     RenderSsector(node.RightSector, start, point2);
+                }
 
                 if (node.LeftNode != null)
                     SortSectors(node.LeftNode, start);
                 else
+                {
                     RenderSsector(node.LeftSector, start, point2);
+                }
             }
             else
             {
                 Debugger.Break();
             }
         }
-
 
         public static Tuple<double, double> FindIntersection(double p0X, double p0Y, double p1X, double p1Y,
                 double p2X, double p2Y, double p3X, double p3Y)
