@@ -9,8 +9,12 @@ namespace Doomnet
 {
     internal class Program
     {
-        private const int WIDTH = 1600;
-        private const int HEIGHT = 900;
+        private const int RENDER_WIDTH = 640;
+        private const int RENDER_HEIGHT = 400;
+
+
+        private const int SCREEN_WIDTH = 1440;
+        private const int SCREEN_HEIGHT = 900;
 
         static void Main(string[] args)
         {
@@ -25,7 +29,7 @@ namespace Doomnet
             IntPtr window = SDL.SDL_CreateWindow("DoomNet",
                 SDL.SDL_WINDOWPOS_UNDEFINED,
                 SDL.SDL_WINDOWPOS_UNDEFINED,
-                WIDTH, HEIGHT,
+                SCREEN_WIDTH, SCREEN_HEIGHT,
                 SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
 
             var screenSurface = SDL.SDL_GetWindowSurface(window);
@@ -106,9 +110,11 @@ namespace Doomnet
 
                 smallRect = new SDL.SDL_Rect { h = 1000, w = 1000, x = start.posX - 500, y = start.posY - 500 };
                 var fullRect = new SDL.SDL_Rect { h = 500, w = 500, x = 0, y = 0 };
+                var screenRect = new SDL.SDL_Rect { h = SCREEN_HEIGHT, w = SCREEN_WIDTH, x = 0, y = 0 };
+                var renderRect = new SDL.SDL_Rect { h = RENDER_HEIGHT, w = RENDER_WIDTH, x = 0, y = 0 };
                 Marshal.StructureToPtr(smallRect, smalRectPtr, true);
 
-                SDL.SDL_BlitSurface(surface, IntPtr.Zero, screenSurface, IntPtr.Zero);
+                SDL.SDL_BlitScaled(surface, ref renderRect, screenSurface, ref screenRect);
                 if (showDebug)
                     SDL.SDL_BlitScaled(ViewRenderer.MapSurface, ref smallRect, screenSurface, ref fullRect);
 
@@ -120,7 +126,7 @@ namespace Doomnet
             SDL.SDL_Quit();
         }
 
-        private readonly ViewRenderer viewRenderer = new ViewRenderer(WIDTH, HEIGHT);
+        private readonly ViewRenderer viewRenderer = new ViewRenderer(RENDER_WIDTH, RENDER_HEIGHT);
 
         public ViewRenderer ViewRenderer
         {
