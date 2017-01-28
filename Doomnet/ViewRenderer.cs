@@ -229,10 +229,10 @@ namespace Doomnet
                 var color = (byte)((distanceLeft / level.Width * 4) * 255);
 
                 SDL.SDL_SetRenderDrawColor(mapRenderer, color, color, color, 255);
-                //SDL.SDL_SetRenderDrawColor(mapRenderer, (byte)segment.start.X, (byte)segment.start.Y, (byte)segment.angle, 255);
+                SDL.SDL_SetRenderDrawColor(mapRenderer, (byte)segment.start.X, (byte)segment.start.Y, (byte)segment.angle, 255);
 
-                SDL.SDL_RenderDrawLine(mapRenderer, (int)start.X, (int)start.Y, segment.start.X, segment.start.Y);
-                SDL.SDL_RenderDrawLine(mapRenderer, (int)start.X, (int)start.Y, segment.end.X, segment.end.Y);
+                //SDL.SDL_RenderDrawLine(mapRenderer, (int)start.X, (int)start.Y, segment.start.X, segment.start.Y);
+                //SDL.SDL_RenderDrawLine(mapRenderer, (int)start.X, (int)start.Y, segment.end.X, segment.end.Y);
 
                 if (oSidedef != null )
                 {
@@ -320,6 +320,9 @@ namespace Doomnet
             var side = Sign((node.EndX - node.StartX) * (start.Y - node.StartY) -
                             (node.EndY - node.StartY) * (start.X - node.StartX));
 
+            SDL.SDL_SetRenderDrawColor(mapRenderer, 0, 0, 0, 255);
+            SDL.SDL_RenderDrawLine(mapRenderer, (int)node.StartX, (int)node.StartY, node.EndX, node.EndX);
+
             side = -side;
 
             if (side > 0)
@@ -358,7 +361,8 @@ namespace Doomnet
             }
             else
             {
-                Debugger.Break();
+                return;
+                //Debugger.Break();
             }
         }
 

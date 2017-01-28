@@ -42,10 +42,10 @@ namespace Doomnet
             var levelDrawer = new LevelDrawer();
             wad.CreateTexturesForRenderer(ViewRenderer.Renderer);
 
-            var level = wad.LoadLevel("E1M1");
+            var level = wad.LoadLevel("E1M2");
 
 
-            levelDrawer.SaveImage(level);
+            //levelDrawer.SaveImage(level);
 
             var start = level.Things.First(t => t.type == 1);
 
