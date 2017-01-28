@@ -1,7 +1,6 @@
 using SDL2;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using static System.Math;
 
 namespace Doomnet
@@ -162,7 +161,13 @@ namespace Doomnet
             var ac2 = Pow(a.X - c.X, 2) + Pow(a.Y - c.Y, 2);
             var bc2 = Pow(b.X - c.X, 2) + Pow(b.Y - c.Y, 2);
 
-            var angle = Acos((ab2 + ac2 - bc2) / (2 * Sqrt(ab2) * Sqrt(ac2)));
+            var sqrt = (2 * Sqrt(ab2) * Sqrt(ac2));
+            var div = (ab2 + ac2 - bc2) / sqrt;
+            var angle = Acos(div);
+            if (div > 1 || div < -1)
+            {
+                angle = 0;
+            }
 
             if (FindSide(a, b, c) < 0)
                 angle = -angle;
@@ -183,14 +188,14 @@ namespace Doomnet
             {
                 var line = segment.line;
 
-                var leftAngle = GetPointsAngle(start, endLeft, new PointD { X = segment.start.X, Y = segment.start.Y });
-                var rightAngle = GetPointsAngle(start, endLeft, new PointD { X = segment.end.X, Y = segment.end.Y });
+                var leftAngle = GetPointsAngle(start, endLeft, new PointD { X = segment.start.X, Y = segment.start.Y }) / TO_RADIAN;
+                var rightAngle = GetPointsAngle(start, endLeft, new PointD { X = segment.end.X, Y = segment.end.Y }) / TO_RADIAN;
 
-                if (leftAngle > rightAngle)
-                {
-                    continue;
-                }
-                if (leftAngle > 90.0 * TO_RADIAN)
+                //if (leftAngle < rightAngle)
+                //{
+                //    continue;
+                //}
+                if (leftAngle > 90.0)
                 {
                     continue;
                 }
@@ -203,8 +208,9 @@ namespace Doomnet
                     new PointD { X = segment.end.X, Y = segment.end.Y },
                     start);
 
-                var sidedef = side > 0 ? line.right : line.left;
+                var sidedef = side >= 0 ? line.right : line.left;
                 var oSidedef = side > 0 ? line.left : line.right;
+
                 if (sidedef == null)
                     continue;
 
@@ -220,8 +226,8 @@ namespace Doomnet
                 short bottom;
                 short top;
                 var distanceDelt = distanceRight - distanceLeft;
-                var min = AngleToScreen(leftAngle);
-                var max = AngleToScreen(rightAngle);
+                var min = AngleToScreen(leftAngle * TO_RADIAN);
+                var max = AngleToScreen(rightAngle *  TO_RADIAN);
 
                 if (min > sWidth || max < 0)
                     continue;
@@ -231,16 +237,16 @@ namespace Doomnet
                 SDL.SDL_SetRenderDrawColor(mapRenderer, color, color, color, 255);
                 SDL.SDL_SetRenderDrawColor(mapRenderer, (byte)segment.start.X, (byte)segment.start.Y, (byte)segment.angle, 255);
 
+                SDL.SDL_RenderDrawLine(mapRenderer, (int)segment.start.X, (int)segment.start.Y, segment.end.X, segment.end.Y);
                 //SDL.SDL_RenderDrawLine(mapRenderer, (int)start.X, (int)start.Y, segment.start.X, segment.start.Y);
                 //SDL.SDL_RenderDrawLine(mapRenderer, (int)start.X, (int)start.Y, segment.end.X, segment.end.Y);
 
-                if (oSidedef != null )
+                if (oSidedef != null)
                 {
                     for (int i = min; i < max; i++)
                     {
-                        texture = sidedef.lower;
-
                         var distance = distanceLeft + (distanceDelt) * (i - min) / (max - min);
+                        texture = sidedef.lower;
                         if (texture != null)
                         {
                             bottom = sidedef.sector.bottom;
@@ -266,21 +272,22 @@ namespace Doomnet
                             DrawColumn(top, bottom, distance, texture, loffset, i);
                         }
                     }
-                    continue;
                 }
-
-                texture = sidedef.middle;
-
-                if (texture == null)
-                    continue;
-                bottom = sidedef.sector.bottom;
-                top = sidedef.sector.top;
-
-                for (int i = min; i < max; i++)
+                else
                 {
-                    var loffset = (short)((offset + i) % texture.Width);
-                    var distance = distanceLeft + (distanceDelt) * (i - min) / (max - min);
-                    DrawColumn(top, bottom, distance, texture, loffset, i);
+                    texture = sidedef.middle;
+
+                    if (texture == null)
+                        continue;
+                    bottom = sidedef.sector.bottom;
+                    top = sidedef.sector.top;
+
+                    for (int i = min; i < max; i++)
+                    {
+                        var loffset = (short)((offset + i) % texture.Width);
+                        var distance = distanceLeft + (distanceDelt) * (i - min) / (max - min);
+                        DrawColumn(top, bottom, distance, texture, loffset, i);
+                    }
                 }
             }
         }
@@ -289,7 +296,7 @@ namespace Doomnet
         {
             var wallHeight = top - bottom;
             var colHeight = (int)(wallHeight / distance * sHeight);
-            var viewBottom = (int)((bottom - 64)  / distance * sHeight);
+            var viewBottom = (int)((bottom - 64) / distance * sHeight);
 
             var srcrect = new SDL.SDL_Rect
             {
@@ -303,7 +310,7 @@ namespace Doomnet
                 h = colHeight,
                 w = 1,
                 x = sWidth - column,
-                y = sHeight/2 - (viewBottom + colHeight)
+                y = sHeight / 2 - (viewBottom + colHeight)
             };
 
             SDL.SDL_RenderCopy(renderer, texture.SdlTexture, ref srcrect, ref dstrect);
@@ -312,7 +319,7 @@ namespace Doomnet
         private int FindSide(PointD start, PointD end, PointD point)
         {
             return Sign((end.X - start.X) * (point.Y - start.Y) -
-                        (end.Y - start.Y) * (point.X - start.X));
+                        (end.Y - start.Y) * (point.X - start.X) * -1);
         }
 
         private void SortSectors(Node node, PointD start)
@@ -321,7 +328,7 @@ namespace Doomnet
                             (node.EndY - node.StartY) * (start.X - node.StartX));
 
             SDL.SDL_SetRenderDrawColor(mapRenderer, 0, 0, 0, 255);
-            SDL.SDL_RenderDrawLine(mapRenderer, (int)node.StartX, (int)node.StartY, node.EndX, node.EndX);
+            SDL.SDL_RenderDrawLine(mapRenderer, (int)node.StartX, (int)node.StartY, node.EndX, node.EndY);
 
             side = -side;
 
@@ -342,7 +349,7 @@ namespace Doomnet
                     RenderSsector(node.RightSector, start, point2);
                 }
             }
-            else if (side < 0)
+            else if (side <= 0)
             {
                 List<SSector> l;
                 if (node.RightNode != null)

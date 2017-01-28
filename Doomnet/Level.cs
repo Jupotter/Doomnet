@@ -132,6 +132,8 @@ namespace Doomnet
                     RightNum = ToUInt16(buffer, 24),
                     LeftNum = ToUInt16(buffer, 26),
                 };
+                n.EndX = (short)(n.StartX + n.EndX);
+                n.EndY = (short)(n.StartY + n.EndY);
 
                 if ((n.RightNum & (0x1 << 15)) != 0)
                 {

@@ -98,6 +98,12 @@ namespace Doomnet
                             {
                                 showDebug = !showDebug;
                             }
+                            if (@event.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_F5)
+                            {
+                                level = wad.LoadLevel("E1M1");
+                                start = level.Things.First(t => t.type == 1);
+                                angle = start.angle;
+                            }
                             break;
                     }
                 }

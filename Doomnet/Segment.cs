@@ -1,3 +1,5 @@
+using System;
+
 namespace Doomnet
 {
     public  class Segment
@@ -8,5 +10,9 @@ namespace Doomnet
         public bool reverse;
         public short offset;
 
+        public override string ToString()
+        {
+            return String.Format("{0} --> {1}", start, end);
+        }
     }
 }
